@@ -204,11 +204,4 @@ public class FluxUtils {
         }
         return true;
     }
-
-    // TODO 배치 F: FluxConfigurationType, TileFluxCore 변환 후 추가
-    // (원작 copyConfiguration(TileFluxCore, NBTTagCompound): FluxConfigurationType.VALUES를 돌며 타일 설정을 NBT에 복사해 반환)
-    // (원작 pasteConfiguration(TileFluxCore, NBTTagCompound): NBT에 키가 있는 설정만 타일에 붙여넣음)
-
-    // TODO 2단계: GUI 일괄 편집용 NBT 생성 (TextboxButton, SlidedSwitchButton 사용)
-    // (원작 getBatchEditingTag: 이름·우선순위·한도·surge·disableLimit·chunkLoad를 ItemFluxConnector 키로 NBT에 담아 반환)
 }
