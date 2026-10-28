@@ -110,7 +110,7 @@ public abstract class BlockFluxCore extends Block {
 
     @Override
     public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int side, float hitX,
-        float hitY, float hitZ) {
+                                    float hitY, float hitZ) {
         if (world.isRemote) {
             return true;
         }
@@ -140,10 +140,6 @@ public abstract class BlockFluxCore extends Block {
                     .getId();
             }
             fluxCore.markDirty();
-        }
-        if (tile instanceof TileFluxConnector) {
-            // 이쪽으로 연결된 GT 케이블을 지금 끊고 1초 뒤 다시 이어, 케이블의 전력 경로 캐시가 새 타일을 가리키게 한다
-            ((TileFluxConnector) tile).scheduleCableRefresh();
         }
     }
 
@@ -213,7 +209,7 @@ public abstract class BlockFluxCore extends Block {
     protected void readDataFromStack(ItemStack stack, TileFluxCore tile) {
         if (stack != null && stack.hasTagCompound()
             && stack.getTagCompound()
-                .hasKey(FluxUtils.FLUX_DATA, Constants.NBT.TAG_COMPOUND)) {
+            .hasKey(FluxUtils.FLUX_DATA, Constants.NBT.TAG_COMPOUND)) {
             NBTTagCompound sub = stack.getTagCompound()
                 .getCompoundTag(FluxUtils.FLUX_DATA);
             tile.readCustomNBT(sub, NBTType.TILE_DROP);
