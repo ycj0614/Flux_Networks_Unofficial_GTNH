@@ -1,1 +1,3 @@
 # fluxnetworksgtnh
+
+This is personal, experimental work and sadly vibecoded. Recommend to do not fork or something...
