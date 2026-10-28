@@ -5,7 +5,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraftforge.common.MinecraftForge;
 
@@ -14,6 +13,8 @@ import com.ycj0614.fluxnetworks.FluxNetworks;
 import com.ycj0614.fluxnetworks.api.network.IFluxNetwork;
 import com.ycj0614.fluxnetworks.common.connection.FluxNetworkCache;
 import com.ycj0614.fluxnetworks.common.event.FluxConnectionEvent;
+import com.ycj0614.fluxnetworks.common.handler.TileEntityHandler;
+import com.ycj0614.fluxnetworks.common.registry.RegistryBlocks;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
@@ -42,6 +43,8 @@ public class CommonProxy {
         MinecraftForge.EVENT_BUS.register(this);
         // TODO 2단계: 원작의 PacketHandler.registerMessages() 호출 — SimpleNetworkWrapper 채널과 패킷 메시지 등록
         FluxConfig.init(event.getModConfigurationDirectory());
+        RegistryBlocks.register();
+        TileEntityHandler.registerTileEntity();
         // TODO 3단계: 원작의 EntityRegistry.registerModEntity(EntityFireItem.class, "Flux", 0, FluxNetworks.instance, 64,
         // 10, true) 호출 — 불 속 레드스톤 → 플럭스 변환용 아이템 엔티티 등록
     }
@@ -71,7 +74,7 @@ public class CommonProxy {
         @Override
         @SideOnly(Side.CLIENT)
         public Item getTabIconItem() {
-            return Items.redstone; // TODO 배치 G: RegistryBlocks.FLUX_PLUG로 교체
+            return Item.getItemFromBlock(RegistryBlocks.FLUX_PLUG);
         }
     };
 
