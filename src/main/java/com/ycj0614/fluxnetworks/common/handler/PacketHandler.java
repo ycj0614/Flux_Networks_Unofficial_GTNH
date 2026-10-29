@@ -6,6 +6,9 @@ import com.ycj0614.fluxnetworks.FluxNetworks;
 import com.ycj0614.fluxnetworks.common.network.PacketActivateSuperAdmin;
 import com.ycj0614.fluxnetworks.common.network.PacketBatchEditing;
 import com.ycj0614.fluxnetworks.common.network.PacketByteBuf;
+import com.ycj0614.fluxnetworks.common.network.PacketColorCache;
+import com.ycj0614.fluxnetworks.common.network.PacketColorRequest;
+import com.ycj0614.fluxnetworks.common.network.PacketConfiguratorSettings;
 import com.ycj0614.fluxnetworks.common.network.PacketConnectionUpdate;
 import com.ycj0614.fluxnetworks.common.network.PacketConnectionUpdateRequest;
 import com.ycj0614.fluxnetworks.common.network.PacketFeedback;
@@ -14,6 +17,7 @@ import com.ycj0614.fluxnetworks.common.network.PacketGeneral;
 import com.ycj0614.fluxnetworks.common.network.PacketNetworkUpdate;
 import com.ycj0614.fluxnetworks.common.network.PacketNetworkUpdateRequest;
 import com.ycj0614.fluxnetworks.common.network.PacketPermissionRequest;
+import com.ycj0614.fluxnetworks.common.network.PacketSetConfiguratorNetwork;
 import com.ycj0614.fluxnetworks.common.network.PacketSuperAdmin;
 import com.ycj0614.fluxnetworks.common.network.PacketTile;
 
@@ -27,7 +31,7 @@ public class PacketHandler {
     public static SimpleNetworkWrapper network = NetworkRegistry.INSTANCE.newSimpleChannel(FluxNetworks.MODID);
 
     /**
-     * 패킷 ID(discriminator)는 원작 번호를 그대로 고정한다. 빈 번호는 배치 J에서 채운다.
+     * 패킷 ID(discriminator)는 원작 번호를 그대로 고정한다.
      */
     public static void registerMessages() {
         network.registerMessage(PacketGeneral.class, PacketGeneral.GeneralMessage.class, 1, Side.SERVER);
@@ -37,10 +41,8 @@ public class PacketHandler {
         network.registerMessage(PacketByteBuf.class, PacketByteBuf.ByteBufMessage.class, 4, Side.CLIENT);
         network.registerMessage(PacketTile.class, PacketTile.TileMessage.class, 5, Side.SERVER);
         network.registerMessage(PacketFeedback.class, PacketFeedback.FeedbackMessage.class, 6, Side.CLIENT);
-        // TODO 배치 J: network.registerMessage(PacketColorRequest.class, PacketColorRequest.ColorRequestMessage.class,
-        // 7, Side.SERVER);
-        // TODO 배치 J: network.registerMessage(PacketColorCache.class, PacketColorCache.ColorCacheMessage.class, 8,
-        // Side.CLIENT);
+        network.registerMessage(PacketColorRequest.class, PacketColorRequest.ColorRequestMessage.class, 7, Side.SERVER);
+        network.registerMessage(PacketColorCache.class, PacketColorCache.ColorCacheMessage.class, 8, Side.CLIENT);
         network.registerMessage(
             PacketNetworkUpdateRequest.class,
             PacketNetworkUpdateRequest.UpdateRequestMessage.class,
@@ -74,10 +76,16 @@ public class PacketHandler {
             PacketActivateSuperAdmin.ActivateSuperAdminMessage.class,
             16,
             Side.SERVER);
-        // TODO 배치 J: network.registerMessage(PacketConfiguratorSettings.class,
-        // PacketConfiguratorSettings.ConfiguratorSettingsMessage.class, 17, Side.SERVER);
-        // TODO 배치 J: network.registerMessage(PacketSetConfiguratorNetwork.class,
-        // PacketSetConfiguratorNetwork.SetConfiguratorNetworkMessage.class, 18, Side.SERVER);
+        network.registerMessage(
+            PacketConfiguratorSettings.class,
+            PacketConfiguratorSettings.ConfiguratorSettingsMessage.class,
+            17,
+            Side.SERVER);
+        network.registerMessage(
+            PacketSetConfiguratorNetwork.class,
+            PacketSetConfiguratorNetwork.SetConfiguratorNetworkMessage.class,
+            18,
+            Side.SERVER);
     }
 
     public static EntityPlayer getPlayer(MessageContext ctx) {

@@ -66,6 +66,11 @@ info.fluxnetworks.flux.input=Input
 info.fluxnetworks.flux.output=Output
 info.fluxnetworks.flux.change=Change
 info.fluxnetworks.flux.averagetick=Average Tick
+info.fluxnetworks.flux.maxinputtier=Max Input Tier
+info.fluxnetworks.flux.outputtier=Output Tier
+info.fluxnetworks.flux.outputamperage=Output Amperage
+info.fluxnetworks.configurator.copied=Copied Configuration
+info.fluxnetworks.configurator.pasted=Pasted Configuration
 
 info.fluxnetworks.feedback.reject=The server rejected your request
 info.fluxnetworks.feedback.noowner=You aren't the owner of the network

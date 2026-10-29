@@ -1,0 +1,121 @@
+package com.ycj0614.fluxnetworks.client;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import com.ycj0614.fluxnetworks.common.core.FluxUtils;
+import com.ycj0614.fluxnetworks.common.handler.PacketHandler;
+import com.ycj0614.fluxnetworks.common.network.PacketColorCache;
+import com.ycj0614.fluxnetworks.common.network.PacketColorRequest;
+
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+
+/**
+ * 원작 FluxColorHandler 중 네트워크 이름·색 캐시 부분. 아이템 툴팁에서 서버에 요청해 받은 값을 보여준다.
+ * <p>
+ * TODO 3단계: 원작의 블록·아이템 색 입히기 (IBlockColor/IItemColor colorMultiplier, colorMultiplierForConfigurator) —
+ * tintIndex 1에 연결 안 됨이면 NO_NETWORK_COLOR, 타일이면 getBrighterColor(tile.color, 1.2), 아이템은 FLUX_DATA의 네트워크 색.
+ * GUI가 열려 있고 GUI_COLOR 태그가 있으면 GUI의 네트워크 색
+ */
+@SideOnly(Side.CLIENT)
+public class FluxColorHandler {
+
+    public static final int DEFAULT_COLOR = FluxUtils.getIntFromColor(41, 94, 138);
+    public static final int NO_NETWORK_COLOR = FluxUtils.getIntFromColor(178, 178, 178);
+
+    /** 원작은 40 렌더 틱마다 보냈다. 여기서는 클라이언트 틱(약 2초) 기준 */
+    private static final int REQUEST_INTERVAL = 40;
+
+    private static final Map<Integer, Integer> colorCache = new HashMap<>();
+    private static final Map<Integer, String> nameCache = new HashMap<>();
+    private static final Set<Integer> requests = new LinkedHashSet<>();
+    private static final Set<Integer> sentRequests = new HashSet<>();
+
+    private static int tickCount;
+
+    public static void reset() {
+        colorCache.clear();
+        nameCache.clear();
+        requests.clear();
+        sentRequests.clear(); // 원작과 다름: 원작은 보낸 요청 목록을 비우지 않아 재접속 후 다시 요청하지 못했다
+        tickCount = 0;
+    }
+
+    public static void loadColorCache(int id, int color) {
+        if (id != -1) {
+            colorCache.put(id, color);
+        }
+    }
+
+    public static void loadNameCache(int id, String name) {
+        if (id != -1) {
+            nameCache.put(id, name);
+        }
+    }
+
+    public static void placeRequest(int id) {
+        if (id != -1 && !sentRequests.contains(id)) {
+            requests.add(id);
+        }
+    }
+
+    public static int getOrRequestNetworkColor(int id) {
+        if (id == -1) {
+            return NO_NETWORK_COLOR;
+        }
+        Integer cached = colorCache.get(id);
+        if (cached != null) {
+            return cached;
+        }
+        placeRequest(id);
+        return NO_NETWORK_COLOR;
+    }
+
+    public static String getOrRequestNetworkName(int id) {
+        if (id == -1) {
+            return "NONE";
+        }
+        String cached = nameCache.get(id);
+        if (cached != null) {
+            return cached;
+        }
+        placeRequest(id);
+        return "WAITING FOR SERVER";
+    }
+
+    /** ClientTickEvent END마다 호출. 모인 요청을 REQUEST_INTERVAL 틱마다 한 번에 보낸다 */
+    public static void sendRequests() {
+        if (requests.isEmpty()) {
+            return;
+        }
+        if (++tickCount > REQUEST_INTERVAL) {
+            tickCount = 0;
+            List<Integer> toSend = new ArrayList<>();
+            for (Integer id : requests) {
+                if (toSend.size() >= PacketColorCache.MAX_ENTRIES) {
+                    break; // 남은 요청은 다음 주기에 보낸다
+                }
+                toSend.add(id);
+            }
+            PacketHandler.network.sendToServer(new PacketColorRequest.ColorRequestMessage(toSend));
+            sentRequests.addAll(toSend);
+            requests.removeAll(toSend);
+        }
+    }
+
+    public static void receiveCache(Map<Integer, PacketColorCache.Entry> cache) {
+        for (Map.Entry<Integer, PacketColorCache.Entry> e : cache.entrySet()) {
+            int id = e.getKey();
+            loadColorCache(id, e.getValue().color);
+            loadNameCache(id, e.getValue().name);
+            sentRequests.remove(id);
+            requests.remove(id);
+        }
+    }
+}

@@ -25,6 +25,7 @@ import com.ycj0614.fluxnetworks.api.utils.NBTType;
 import com.ycj0614.fluxnetworks.common.CommonProxy;
 import com.ycj0614.fluxnetworks.common.command.CommandFluxDebug;
 import com.ycj0614.fluxnetworks.common.core.FluxUtils;
+import com.ycj0614.fluxnetworks.common.item.ItemConfigurator;
 import com.ycj0614.fluxnetworks.common.tileentity.TileFluxConnector;
 import com.ycj0614.fluxnetworks.common.tileentity.TileFluxCore;
 
@@ -39,7 +40,7 @@ import cpw.mods.fml.relauncher.SideOnly;
  * 원작의 getActualState, createBlockState, getStateFromMeta, getMetaFromState, getBoundingBox, getRenderLayer,
  * isOpaqueCube/isNormalCube/isFullCube 오버라이드는 1단계에서 삭제했다 (일반 불투명 정육면체로 렌더링).
  * <p>
- * TODO 2단계: ItemFluxConnector에서 툴팁·이름 표시 (원작 addInformation, 1.7.10에서는 ItemBlock 쪽에 있어야 한다)
+ * 아이템 이름·툴팁은 ItemFluxConnector가 맡는다.
  */
 public abstract class BlockFluxCore extends Block {
 
@@ -111,11 +112,16 @@ public abstract class BlockFluxCore extends Block {
     @Override
     public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int side, float hitX,
         float hitY, float hitZ) {
+        // 구성기를 들고 있으면 false → ItemConfigurator.onItemUse가 붙여넣기를 한다 (원작과 같음)
+        ItemStack held = player.getHeldItem();
+        if (held != null && held.getItem() instanceof ItemConfigurator) {
+            return false;
+        }
         if (world.isRemote) {
             return true;
         }
-        // TODO 2단계: GUI 열기, 점유 중·권한 거부 메시지 (원작: playerUsing이 있으면 ACCESS_OCCUPY, canAccess 실패 시
-        // ACCESS_DENIED, 구성기를 들고 있으면 false 반환)
+        // TODO 배치 L: GUI 열기, 점유 중·권한 거부 메시지 (원작: playerUsing이 있으면 ACCESS_OCCUPY, canAccess 실패 시
+        // ACCESS_DENIED, 아니면 player.openGui(FluxNetworks.instance, GuiHandler.GUI_TILE, world, x, y, z))
         TileEntity tile = world.getTileEntity(x, y, z);
         if (tile instanceof TileFluxCore) {
             // 1단계 임시 동작: /fluxdebug info와 같은 정보를 채팅으로 보여준다 (TODO 2단계 완료 후 삭제)

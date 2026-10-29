@@ -50,6 +50,9 @@ public class FluxTranslate {
     public static final Translation OUTPUT = i("flux.output");
     public static final Translation CHANGE = i("flux.change");
     public static final Translation AVERAGE_TICK = i("flux.averagetick");
+    public static final Translation MAX_INPUT_TIER = i("flux.maxinputtier");
+    public static final Translation OUTPUT_TIER = i("flux.outputtier");
+    public static final Translation OUTPUT_AMPERAGE = i("flux.outputamperage");
 
     public static final Translation SORT_BY = i("gui.sortby");
     public static final Translation SELECTED = i("gui.selected");

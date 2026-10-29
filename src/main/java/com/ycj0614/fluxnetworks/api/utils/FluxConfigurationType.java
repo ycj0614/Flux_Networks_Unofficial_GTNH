@@ -5,6 +5,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import com.ycj0614.fluxnetworks.api.network.IFluxNetwork;
 import com.ycj0614.fluxnetworks.common.connection.FluxNetworkCache;
 import com.ycj0614.fluxnetworks.common.tileentity.TileFluxCore;
+import com.ycj0614.fluxnetworks.common.tileentity.TileFluxPlug;
+import com.ycj0614.fluxnetworks.common.tileentity.TileFluxPoint;
 
 /// TODO remove common references
 public class FluxConfigurationType {
@@ -66,7 +68,15 @@ public class FluxConfigurationType {
         for (FluxConfigurationType type : VALUES) {
             type.copy.copyFromTile(config, type.getNBTName(), tile);
         }
-        // TODO 2단계: 구성기로 EU 설정 복사 (플러그 maxInputTier, 포인트 outputTier/outputAmperage)
+        // EU 설정 (원작에 없음). 키는 장치 NBT 키와 같다
+        if (tile instanceof TileFluxPlug) {
+            config.setInteger(TileFluxPlug.NBT_MAX_INPUT_TIER, ((TileFluxPlug) tile).getMaxInputTier());
+        }
+        if (tile instanceof TileFluxPoint) {
+            TileFluxPoint point = (TileFluxPoint) tile;
+            config.setInteger(TileFluxPoint.NBT_OUTPUT_TIER, point.getOutputTier());
+            config.setLong(TileFluxPoint.NBT_OUTPUT_AMPERAGE, point.getOutputAmperage());
+        }
         return config;
     }
 
@@ -82,7 +92,19 @@ public class FluxConfigurationType {
                 type.paste.pasteToTile(config, type.getNBTName(), tile);
             }
         }
-        // TODO 2단계: 구성기로 EU 설정 복사 (플러그 maxInputTier, 포인트 outputTier/outputAmperage)
+        // EU 설정 (원작에 없음). 보정과 동기화를 위해 반드시 setter를 쓴다
+        if (tile instanceof TileFluxPlug && config.hasKey(TileFluxPlug.NBT_MAX_INPUT_TIER)) {
+            ((TileFluxPlug) tile).setMaxInputTier(config.getInteger(TileFluxPlug.NBT_MAX_INPUT_TIER));
+        }
+        if (tile instanceof TileFluxPoint) {
+            TileFluxPoint point = (TileFluxPoint) tile;
+            if (config.hasKey(TileFluxPoint.NBT_OUTPUT_TIER)) {
+                point.setOutputTier(config.getInteger(TileFluxPoint.NBT_OUTPUT_TIER));
+            }
+            if (config.hasKey(TileFluxPoint.NBT_OUTPUT_AMPERAGE)) {
+                point.setOutputAmperage(config.getLong(TileFluxPoint.NBT_OUTPUT_AMPERAGE));
+            }
+        }
     }
 
     //// NETWORK \\\\
@@ -131,7 +153,7 @@ public class FluxConfigurationType {
     }
 
     public static void pasteTransfer(NBTTagCompound nbt, String key, TileFluxCore tile) {
-        tile.limit = nbt.getLong(key);
+        tile.limit = Math.max(0L, nbt.getLong(key)); // 음수 한도는 0 (PacketByteBuf ID 3과 같음)
     }
 
     //// TRANSFER SETTING \\\\

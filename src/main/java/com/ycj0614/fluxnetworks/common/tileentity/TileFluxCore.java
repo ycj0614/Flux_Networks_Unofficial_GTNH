@@ -386,6 +386,9 @@ public abstract class TileFluxCore extends TileEntity implements IFluxConnector,
     @Override
     public void pasteConfiguration(NBTTagCompound config) {
         FluxConfigurationType.pasteAll(this, config);
+        // 우선순위·서지 모드가 바뀌었을 수 있으므로 연결 정렬을 다시 하고, 저장·동기화한다
+        sortNetworkConnections();
+        notifySettingChanged();
     }
 
     @Override

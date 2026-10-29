@@ -1,6 +1,7 @@
 package com.ycj0614.fluxnetworks.common;
 
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -19,12 +20,16 @@ import com.ycj0614.fluxnetworks.api.utils.NBTType;
 import com.ycj0614.fluxnetworks.common.capabilities.SuperAdminData;
 import com.ycj0614.fluxnetworks.common.capabilities.SuperAdminHandler;
 import com.ycj0614.fluxnetworks.common.connection.FluxNetworkCache;
+import com.ycj0614.fluxnetworks.common.connection.FluxNetworkInvalid;
 import com.ycj0614.fluxnetworks.common.event.FluxConnectionEvent;
+import com.ycj0614.fluxnetworks.common.handler.GuiHandler;
 import com.ycj0614.fluxnetworks.common.handler.PacketHandler;
 import com.ycj0614.fluxnetworks.common.handler.TileEntityHandler;
+import com.ycj0614.fluxnetworks.common.network.PacketColorCache;
 import com.ycj0614.fluxnetworks.common.network.PacketNetworkUpdate;
 import com.ycj0614.fluxnetworks.common.network.PacketSuperAdmin;
 import com.ycj0614.fluxnetworks.common.registry.RegistryBlocks;
+import com.ycj0614.fluxnetworks.common.registry.RegistryItems;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
@@ -33,14 +38,17 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.PlayerEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
+import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.network.simpleimpl.MessageContext;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 public class CommonProxy {
 
-    // TODO 2단계: 원작의 SuperAdmin 네트워크 열람 필드 3개 — int admin_viewing_network_id = -1; boolean detailed_network_view;
-    // IFluxNetwork admin_viewing_network = FluxNetworkInvalid.instance;
+    /** 관리자 구성기 GUI에서 SuperAdmin이 열람 중인 네트워크 (클라이언트에서 쓴다. 이름은 원작 그대로) */
+    public int admin_viewing_network_id = -1;
+    public boolean detailed_network_view;
+    public IFluxNetwork admin_viewing_network = FluxNetworkInvalid.instance;
 
     /** 1.7.10에는 addScheduledTask가 없으므로, 패킷 처리 등 메인 스레드 작업을 여기에 넣고 ServerTickEvent START에서 실행한다 */
     private final Queue<Runnable> serverTasks = new ConcurrentLinkedQueue<>();
@@ -55,6 +63,7 @@ public class CommonProxy {
         PacketHandler.registerMessages();
         FluxConfig.init(event.getModConfigurationDirectory());
         RegistryBlocks.register();
+        RegistryItems.register();
         TileEntityHandler.registerTileEntity();
         // TODO 3단계: 원작의 EntityRegistry.registerModEntity(EntityFireItem.class, "Flux", 0, FluxNetworks.instance, 64,
         // 10, true) 호출 — 불 속 레드스톤 → 플럭스 변환용 아이템 엔티티 등록
@@ -63,6 +72,7 @@ public class CommonProxy {
     public void init(FMLInitializationEvent event) {
         // 원작 DefaultSuperAdmin.register()(캐퍼빌리티 등록) 대체: 플레이어 생성 시 SuperAdminData를 붙인다 (Forge 버스)
         MinecraftForge.EVENT_BUS.register(new SuperAdminHandler());
+        NetworkRegistry.INSTANCE.registerGuiHandler(FluxNetworks.instance, new GuiHandler());
     }
 
     public void postInit(FMLPostInitializationEvent event) {
@@ -162,7 +172,8 @@ public class CommonProxy {
 
     public void onSuperAdminChanged() {}
 
-    // TODO 2단계: 원작의 receiveColorCache(Map<Integer, Tuple<Integer, String>>) — 네트워크 색상 캐시 수신 (서버 쪽은 빈 구현)
+    /** PacketColorCache 수신 (클라이언트 메인 스레드) */
+    public void receiveColorCache(Map<Integer, PacketColorCache.Entry> cache) {}
 
     public EntityPlayer getPlayer(MessageContext ctx) {
         return ctx.getServerHandler().playerEntity;
