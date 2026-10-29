@@ -16,6 +16,7 @@ import javax.annotation.Nonnull;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.common.MinecraftForge;
 
+import com.ycj0614.fluxnetworks.FluxConfig;
 import com.ycj0614.fluxnetworks.api.network.AccessLevel;
 import com.ycj0614.fluxnetworks.api.network.FluxLogicType;
 import com.ycj0614.fluxnetworks.api.network.NetworkMember;
@@ -23,6 +24,7 @@ import com.ycj0614.fluxnetworks.api.network.SecurityType;
 import com.ycj0614.fluxnetworks.api.tiles.IFluxConnector;
 import com.ycj0614.fluxnetworks.api.tiles.IFluxPlug;
 import com.ycj0614.fluxnetworks.api.tiles.IFluxPoint;
+import com.ycj0614.fluxnetworks.common.capabilities.SuperAdminData;
 import com.ycj0614.fluxnetworks.common.core.FluxUtils;
 import com.ycj0614.fluxnetworks.common.event.FluxConnectionEvent;
 
@@ -136,9 +138,9 @@ public class FluxNetworkServer extends FluxNetworkBase {
 
     @Override
     public AccessLevel getMemberPermission(EntityPlayer player) {
-        // TODO 2단계: SuperAdmin(IExtendedEntityProperties) 확인 후 AccessLevel.SUPER_ADMIN 반환
-        // (원작: FluxConfig.enableSuperAdmin이 true이고 플레이어의 SUPER_ADMIN Capability 권한이 켜져 있으면 SUPER_ADMIN)
-
+        if (FluxConfig.enableSuperAdmin && SuperAdminData.isPlayerSuperAdmin(player)) {
+            return AccessLevel.SUPER_ADMIN;
+        }
         // 원작의 Collectors.toMap(...).getOrDefault(...)와 같은 결과. 단, 같은 UUID가 여러 번 있으면 예외 대신 첫 번째 멤버를 쓴다
         UUID uuid = player.getGameProfile()
             .getId();

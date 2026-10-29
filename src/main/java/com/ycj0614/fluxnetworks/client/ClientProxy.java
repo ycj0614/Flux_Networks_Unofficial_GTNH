@@ -7,6 +7,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 
 import com.ycj0614.fluxnetworks.FluxNetworks;
+import com.ycj0614.fluxnetworks.api.gui.EnumFeedbackInfo;
+import com.ycj0614.fluxnetworks.api.network.AccessLevel;
 import com.ycj0614.fluxnetworks.common.CommonProxy;
 import com.ycj0614.fluxnetworks.common.connection.FluxNetworkCache;
 
@@ -18,8 +20,14 @@ import cpw.mods.fml.common.network.simpleimpl.MessageContext;
 
 public class ClientProxy extends CommonProxy {
 
-    // TODO 2단계: 원작의 피드백 필드 — EnumFeedbackInfo feedbackInfo = NONE (텍스트 메시지), feedbackInfoSuccess = NONE (특수 동작), int
-    // feedbackTimer = 0
+    /** 텍스트로 보여 줄 피드백 */
+    public EnumFeedbackInfo feedbackInfo = EnumFeedbackInfo.NONE;
+    /** 특수 동작용 피드백 (SUCCESS, SUCCESS_2, PASSWORD_REQUIRE) */
+    public EnumFeedbackInfo feedbackInfoSuccess = EnumFeedbackInfo.NONE;
+    public int feedbackTimer = 0;
+
+    /** PacketGUIPermission으로 받은, 열린 GUI의 접근 권한 */
+    private AccessLevel guiAccessPermission = AccessLevel.NONE;
 
     /** 네티 스레드 등에서 들어온 작업을 클라이언트 메인 스레드에서 실행하기 위한 큐. ClientTickEvent START에서 처리 */
     private final Queue<Runnable> clientTasks = new ConcurrentLinkedQueue<>();
@@ -58,12 +66,50 @@ public class ClientProxy extends CommonProxy {
         if (event.phase == TickEvent.Phase.START) {
             runClientTasks();
         }
-        // TODO 2단계: 원작의 피드백 타이머 — Phase.END에서 feedbackInfo.hasFeedback()이면 feedbackTimer를 올리고 60틱이 되면
-        // setFeedback(EnumFeedbackInfo.NONE, false)
+        if (event.phase == TickEvent.Phase.END) {
+            if (feedbackInfo.hasFeedback()) {
+                feedbackTimer++;
+                if (feedbackTimer >= 60) {
+                    feedbackTimer = 0;
+                    setFeedback(EnumFeedbackInfo.NONE, false);
+                }
+            }
+        }
     }
 
-    // TODO 2단계: 원작의 getFeedback(boolean) / setFeedback(EnumFeedbackInfo, boolean) 오버라이드 — operation 여부에 따라
-    // feedbackInfoSuccess / feedbackInfo 조회·설정, 설정 시 feedbackTimer = 0
+    @Override
+    public EnumFeedbackInfo getFeedback(boolean operation) {
+        return operation ? feedbackInfoSuccess : feedbackInfo;
+    }
+
+    @Override
+    public void setFeedback(EnumFeedbackInfo info, boolean operation) {
+        if (operation) {
+            this.feedbackInfoSuccess = info;
+        } else {
+            this.feedbackInfo = info;
+        }
+        this.feedbackTimer = 0;
+    }
+
+    @Override
+    public void setGuiAccessPermission(AccessLevel accessPermission) {
+        this.guiAccessPermission = accessPermission;
+        // TODO 배치 K: 열린 GuiFluxCore.accessPermission에 반영하고 onSuperAdminChanged() 호출
+        // (원작: Minecraft.getMinecraft().currentScreen이 GuiFluxCore면 guiFluxCore.accessPermission = 값;
+        // guiFluxCore.onSuperAdminChanged())
+    }
+
+    @Override
+    public AccessLevel getGuiAccessPermission() {
+        return guiAccessPermission;
+    }
+
+    @Override
+    public void onSuperAdminChanged() {
+        // TODO 배치 K: 열린 GuiFluxCore.onSuperAdminChanged() 호출
+        // (원작: Minecraft.getMinecraft().currentScreen이 GuiFluxCore면 guiFluxCore.onSuperAdminChanged())
+    }
 
     // TODO 3단계: 원작의 receiveColorCache(Map<Integer, Tuple<Integer, String>>) 오버라이드 —
     // FluxColorHandler.receiveCache(cache) 호출

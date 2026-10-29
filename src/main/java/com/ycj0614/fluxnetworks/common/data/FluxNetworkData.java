@@ -1,6 +1,7 @@
 package com.ycj0614.fluxnetworks.common.data;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,8 +28,11 @@ import com.ycj0614.fluxnetworks.api.network.NetworkMember;
 import com.ycj0614.fluxnetworks.api.network.NetworkSettings;
 import com.ycj0614.fluxnetworks.api.tiles.IFluxConnector;
 import com.ycj0614.fluxnetworks.api.utils.NBTType;
+import com.ycj0614.fluxnetworks.common.capabilities.SuperAdminData;
 import com.ycj0614.fluxnetworks.common.connection.FluxLiteConnector;
 import com.ycj0614.fluxnetworks.common.connection.FluxNetworkServer;
+import com.ycj0614.fluxnetworks.common.handler.PacketHandler;
+import com.ycj0614.fluxnetworks.common.network.PacketNetworkUpdate;
 
 /**
  * Save network data to local. Only on server side
@@ -110,19 +114,28 @@ public class FluxNetworkData extends WorldSavedData {
         FluxNetworks.logger.info("FluxNetworkData has been successfully loaded");
     }
 
+    /** 새 네트워크를 추가하고 모든 클라이언트에 알린다 */
     public void addNetwork(IFluxNetwork network) {
+        addNetwork(network, true);
+    }
+
+    /**
+     * @param sendPacket false면 패킷을 보내지 않는다. readFromNBT(월드 로드 중)에서 쓴다. 로드 시점에는 접속자가 없고,
+     *                   플레이어가 접속하면 CommonProxy.onPlayerJoined가 전체 네트워크를 보낸다
+     */
+    public void addNetwork(IFluxNetwork network, boolean sendPacket) {
         networks.putIfAbsent(network.getNetworkID(), network);
-        // TODO 2단계: 원작의 네트워크 추가 패킷 전송
-        // (원작: PacketHandler.network.sendToAll(new
-        // PacketNetworkUpdate.NetworkUpdateMessage(Lists.newArrayList(network),
-        // NBTType.NETWORK_GENERAL))로 모든 클라이언트에 새 네트워크 정보를 보냄)
+        if (sendPacket) {
+            PacketHandler.network.sendToAll(
+                new PacketNetworkUpdate.NetworkUpdateMessage(
+                    Collections.singletonList(network),
+                    NBTType.NETWORK_GENERAL));
+        }
     }
 
     public void removeNetwork(IFluxNetwork network) {
-        // TODO 2단계: 원작의 네트워크 삭제 패킷 전송
-        // (원작: PacketHandler.network.sendToAll(new
-        // PacketNetworkUpdate.NetworkUpdateMessage(Lists.newArrayList(network),
-        // NBTType.NETWORK_CLEAR))로 모든 클라이언트에서 네트워크를 지우게 함)
+        PacketHandler.network.sendToAll(
+            new PacketNetworkUpdate.NetworkUpdateMessage(Collections.singletonList(network), NBTType.NETWORK_CLEAR));
         network.onRemoved();
         networks.remove(network.getNetworkID());
     }
@@ -136,7 +149,7 @@ public class FluxNetworkData extends WorldSavedData {
                 NBTTagCompound tag = list.getCompoundTagAt(i);
                 FluxNetworkServer network = new FluxNetworkServer();
                 network.readNetworkNBT(tag, NBTType.ALL_SAVE);
-                addNetwork(network);
+                addNetwork(network, false);
             }
         }
         readChunks(nbt);
@@ -212,9 +225,7 @@ public class FluxNetworkData extends WorldSavedData {
     }
 
     private static AccessLevel getPermission(EntityPlayer player) {
-        // TODO 2단계: 원작의 SuperAdmin Capability 조회
-        // (원작: 플레이어의 ISuperAdmin Capability 권한이 켜져 있으면 AccessLevel.SUPER_ADMIN, 아니면 AccessLevel.NONE)
-        return AccessLevel.NONE;
+        return SuperAdminData.isPlayerSuperAdmin(player) ? AccessLevel.SUPER_ADMIN : AccessLevel.NONE;
     }
 
     public static void readConnections(IFluxNetwork network, @Nonnull NBTTagCompound nbt) {

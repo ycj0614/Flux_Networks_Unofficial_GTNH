@@ -1,19 +1,29 @@
 package com.ycj0614.fluxnetworks.common;
 
+import java.util.ArrayList;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraftforge.common.MinecraftForge;
 
 import com.ycj0614.fluxnetworks.FluxConfig;
 import com.ycj0614.fluxnetworks.FluxNetworks;
+import com.ycj0614.fluxnetworks.api.gui.EnumFeedbackInfo;
+import com.ycj0614.fluxnetworks.api.network.AccessLevel;
 import com.ycj0614.fluxnetworks.api.network.IFluxNetwork;
+import com.ycj0614.fluxnetworks.api.utils.NBTType;
+import com.ycj0614.fluxnetworks.common.capabilities.SuperAdminData;
+import com.ycj0614.fluxnetworks.common.capabilities.SuperAdminHandler;
 import com.ycj0614.fluxnetworks.common.connection.FluxNetworkCache;
 import com.ycj0614.fluxnetworks.common.event.FluxConnectionEvent;
+import com.ycj0614.fluxnetworks.common.handler.PacketHandler;
 import com.ycj0614.fluxnetworks.common.handler.TileEntityHandler;
+import com.ycj0614.fluxnetworks.common.network.PacketNetworkUpdate;
+import com.ycj0614.fluxnetworks.common.network.PacketSuperAdmin;
 import com.ycj0614.fluxnetworks.common.registry.RegistryBlocks;
 
 import cpw.mods.fml.common.FMLCommonHandler;
@@ -21,6 +31,7 @@ import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.PlayerEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.network.simpleimpl.MessageContext;
 import cpw.mods.fml.relauncher.Side;
@@ -41,7 +52,7 @@ public class CommonProxy {
             .register(this);
         // FluxConnectionEvent, EntityJoinWorldEvent 등 net.minecraftforge.event.* → Forge 버스
         MinecraftForge.EVENT_BUS.register(this);
-        // TODO 2단계: 원작의 PacketHandler.registerMessages() 호출 — SimpleNetworkWrapper 채널과 패킷 메시지 등록
+        PacketHandler.registerMessages();
         FluxConfig.init(event.getModConfigurationDirectory());
         RegistryBlocks.register();
         TileEntityHandler.registerTileEntity();
@@ -50,8 +61,8 @@ public class CommonProxy {
     }
 
     public void init(FMLInitializationEvent event) {
-        // TODO 2단계: 원작의 DefaultSuperAdmin.register() 호출 — SuperAdmin 캐퍼빌리티 등록 (1.7.10에서는 IExtendedEntityProperties 등으로
-        // 대체 필요)
+        // 원작 DefaultSuperAdmin.register()(캐퍼빌리티 등록) 대체: 플레이어 생성 시 SuperAdminData를 붙인다 (Forge 버스)
+        MinecraftForge.EVENT_BUS.register(new SuperAdminHandler());
     }
 
     public void postInit(FMLPostInitializationEvent event) {
@@ -105,9 +116,21 @@ public class CommonProxy {
         }
     }
 
-    // TODO 2단계: 원작의 onPlayerJoined(PlayerEvent.PlayerLoggedInEvent) — 로그인한 플레이어에게 PacketNetworkUpdate(전체 네트워크,
-    // NBTType.NETWORK_GENERAL)와
-    // PacketSuperAdmin(DefaultSuperAdmin.isPlayerSuperAdmin(player)) 전송
+    /** FML 버스. 서버 메인 스레드에서 호출된다 (플레이어 NBT, 즉 SuperAdminData는 이미 읽힌 뒤) */
+    @SubscribeEvent
+    public void onPlayerJoined(PlayerEvent.PlayerLoggedInEvent event) {
+        EntityPlayer player = event.player;
+        if (player instanceof EntityPlayerMP && !player.worldObj.isRemote) {
+            EntityPlayerMP playerMP = (EntityPlayerMP) player;
+            PacketHandler.network.sendTo(
+                new PacketNetworkUpdate.NetworkUpdateMessage(
+                    new ArrayList<>(FluxNetworkCache.instance.getAllNetworks()),
+                    NBTType.NETWORK_GENERAL),
+                playerMP);
+            PacketHandler.network
+                .sendTo(new PacketSuperAdmin.SuperAdminMessage(SuperAdminData.isPlayerSuperAdmin(player)), playerMP);
+        }
+    }
 
     @SubscribeEvent
     public void onFluxConnected(FluxConnectionEvent.Connected event) {
@@ -123,7 +146,22 @@ public class CommonProxy {
         }
     }
 
-    // TODO 2단계: 원작의 getFeedback(boolean) / setFeedback(EnumFeedbackInfo, boolean) — GUI 피드백 메시지 조회·설정 (서버 쪽은 빈 구현)
+    //// 클라이언트 위임 메서드: 패킷 클래스가 클라이언트 클래스를 import하지 않도록 프록시를 거친다. 서버 쪽은 빈 구현 \\\\
+
+    public EnumFeedbackInfo getFeedback(boolean operation) {
+        return null;
+    }
+
+    public void setFeedback(EnumFeedbackInfo info, boolean operation) {}
+
+    public void setGuiAccessPermission(AccessLevel accessPermission) {}
+
+    public AccessLevel getGuiAccessPermission() {
+        return AccessLevel.NONE;
+    }
+
+    public void onSuperAdminChanged() {}
+
     // TODO 2단계: 원작의 receiveColorCache(Map<Integer, Tuple<Integer, String>>) — 네트워크 색상 캐시 수신 (서버 쪽은 빈 구현)
 
     public EntityPlayer getPlayer(MessageContext ctx) {
