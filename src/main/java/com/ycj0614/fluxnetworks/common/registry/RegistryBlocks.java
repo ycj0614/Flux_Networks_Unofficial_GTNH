@@ -4,6 +4,7 @@ import net.minecraft.block.Block;
 
 import com.ycj0614.fluxnetworks.common.block.BlockFluxPlug;
 import com.ycj0614.fluxnetworks.common.block.BlockFluxPoint;
+import com.ycj0614.fluxnetworks.common.item.ItemFluxConnector;
 
 import cpw.mods.fml.common.registry.GameRegistry;
 
@@ -23,9 +24,8 @@ public class RegistryBlocks {
         FLUX_PLUG = new BlockFluxPlug();
         FLUX_POINT = new BlockFluxPoint();
 
-        // TODO 2단계: 원작의 ItemFluxConnector(커넥터 전용 ItemBlock: 이름·툴팁)로 교체.
-        // registerBlock(block, ItemFluxConnector.class, name) 형태로 바꾸되 등록 이름은 유지
-        GameRegistry.registerBlock(FLUX_PLUG, "fluxplug");
-        GameRegistry.registerBlock(FLUX_POINT, "fluxpoint");
+        // 커넥터 전용 ItemBlock(이름·툴팁). 등록 이름은 그대로 유지한다
+        GameRegistry.registerBlock(FLUX_PLUG, ItemFluxConnector.class, "fluxplug");
+        GameRegistry.registerBlock(FLUX_POINT, ItemFluxConnector.class, "fluxpoint");
     }
 }

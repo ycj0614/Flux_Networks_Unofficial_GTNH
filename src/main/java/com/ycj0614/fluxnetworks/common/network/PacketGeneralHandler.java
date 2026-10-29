@@ -128,8 +128,8 @@ public class PacketGeneralHandler {
             list.forEach(fluxConnector -> fluxConnector.connect(network)); // 장치의 색 데이터 갱신
         }
         if (needPacket) {
-            // TODO 배치 J: 이름·색 변경 시 PacketColorCache.sendToAll
-            // (원작: networkID → Tuple(color | 0xff000000, name) 맵을 ColorCacheMessage로 전체 전송)
+            // 이름·색이 바뀌면 모든 클라이언트의 색상 캐시(아이템 툴팁 등)를 갱신한다
+            PacketHandler.network.sendToAll(PacketColorCache.ColorCacheMessage.of(network));
         }
         network.setSetting(NetworkSettings.NETWORK_SECURITY, security);
         network.setSetting(NetworkSettings.NETWORK_PASSWORD, password);

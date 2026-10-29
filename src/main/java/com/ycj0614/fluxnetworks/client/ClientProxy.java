@@ -1,5 +1,6 @@
 package com.ycj0614.fluxnetworks.client;
 
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -11,6 +12,7 @@ import com.ycj0614.fluxnetworks.api.gui.EnumFeedbackInfo;
 import com.ycj0614.fluxnetworks.api.network.AccessLevel;
 import com.ycj0614.fluxnetworks.common.CommonProxy;
 import com.ycj0614.fluxnetworks.common.connection.FluxNetworkCache;
+import com.ycj0614.fluxnetworks.common.network.PacketColorCache;
 
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -44,7 +46,7 @@ public class ClientProxy extends CommonProxy {
     @Override
     public void onServerStopped() {
         super.onServerStopped();
-        // TODO 3단계: 원작의 FluxColorHandler.reset() 호출 — 클라이언트 네트워크 색상 캐시 초기화
+        FluxColorHandler.reset();
         FluxNetworkCache.instance.clearClientCache();
     }
 
@@ -59,14 +61,14 @@ public class ClientProxy extends CommonProxy {
     // FLUX_STORAGE_1~3 블록·아이템과
     // FLUX_CONFIGURATOR에 FluxColorHandler 색상 핸들러 등록 (1.7.10에는 ColorHandlerEvent가 없음. 블록 colorMultiplier 등으로 대체)
 
-    // TODO 3단계: 원작의 onRenderTick(TickEvent.RenderTickEvent) — 매 렌더 틱마다 FluxColorHandler.sendRequests()로 색상 요청 패킷 전송
-
     @SubscribeEvent
     public void onClientTick(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.START) {
             runClientTasks();
         }
         if (event.phase == TickEvent.Phase.END) {
+            // 원작과 다름: 원작은 RenderTickEvent마다 호출했다 (프레임 수에 따라 요청 주기가 달라짐)
+            FluxColorHandler.sendRequests();
             if (feedbackInfo.hasFeedback()) {
                 feedbackTimer++;
                 if (feedbackTimer >= 60) {
@@ -111,8 +113,10 @@ public class ClientProxy extends CommonProxy {
         // (원작: Minecraft.getMinecraft().currentScreen이 GuiFluxCore면 guiFluxCore.onSuperAdminChanged())
     }
 
-    // TODO 3단계: 원작의 receiveColorCache(Map<Integer, Tuple<Integer, String>>) 오버라이드 —
-    // FluxColorHandler.receiveCache(cache) 호출
+    @Override
+    public void receiveColorCache(Map<Integer, PacketColorCache.Entry> cache) {
+        FluxColorHandler.receiveCache(cache);
+    }
 
     @Override
     public EntityPlayer getPlayer(MessageContext ctx) {
