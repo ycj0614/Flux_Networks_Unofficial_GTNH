@@ -4,14 +4,18 @@ import net.minecraft.entity.player.EntityPlayer;
 
 import com.ycj0614.fluxnetworks.FluxNetworks;
 import com.ycj0614.fluxnetworks.common.network.PacketActivateSuperAdmin;
+import com.ycj0614.fluxnetworks.common.network.PacketBatchEditing;
+import com.ycj0614.fluxnetworks.common.network.PacketByteBuf;
 import com.ycj0614.fluxnetworks.common.network.PacketConnectionUpdate;
 import com.ycj0614.fluxnetworks.common.network.PacketConnectionUpdateRequest;
 import com.ycj0614.fluxnetworks.common.network.PacketFeedback;
 import com.ycj0614.fluxnetworks.common.network.PacketGUIPermission;
+import com.ycj0614.fluxnetworks.common.network.PacketGeneral;
 import com.ycj0614.fluxnetworks.common.network.PacketNetworkUpdate;
 import com.ycj0614.fluxnetworks.common.network.PacketNetworkUpdateRequest;
 import com.ycj0614.fluxnetworks.common.network.PacketPermissionRequest;
 import com.ycj0614.fluxnetworks.common.network.PacketSuperAdmin;
+import com.ycj0614.fluxnetworks.common.network.PacketTile;
 
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.network.simpleimpl.MessageContext;
@@ -23,19 +27,19 @@ public class PacketHandler {
     public static SimpleNetworkWrapper network = NetworkRegistry.INSTANCE.newSimpleChannel(FluxNetworks.MODID);
 
     /**
-     * 패킷 ID(discriminator)는 원작 번호를 그대로 고정한다. 빈 번호는 배치 I에서 채운다.
+     * 패킷 ID(discriminator)는 원작 번호를 그대로 고정한다. 빈 번호는 배치 J에서 채운다.
      */
     public static void registerMessages() {
-        // TODO 배치 I: network.registerMessage(PacketGeneral.class, PacketGeneral.GeneralMessage.class, 1, Side.SERVER);
+        network.registerMessage(PacketGeneral.class, PacketGeneral.GeneralMessage.class, 1, Side.SERVER);
         network
             .registerMessage(PacketNetworkUpdate.class, PacketNetworkUpdate.NetworkUpdateMessage.class, 2, Side.CLIENT);
-        // TODO 배치 I: network.registerMessage(PacketByteBuf.class, PacketByteBuf.ByteBufMessage.class, 3, Side.SERVER);
-        // TODO 배치 I: network.registerMessage(PacketByteBuf.class, PacketByteBuf.ByteBufMessage.class, 4, Side.CLIENT);
-        // TODO 배치 I: network.registerMessage(PacketTile.class, PacketTile.TileMessage.class, 5, Side.SERVER);
+        network.registerMessage(PacketByteBuf.class, PacketByteBuf.ByteBufMessage.class, 3, Side.SERVER);
+        network.registerMessage(PacketByteBuf.class, PacketByteBuf.ByteBufMessage.class, 4, Side.CLIENT);
+        network.registerMessage(PacketTile.class, PacketTile.TileMessage.class, 5, Side.SERVER);
         network.registerMessage(PacketFeedback.class, PacketFeedback.FeedbackMessage.class, 6, Side.CLIENT);
-        // TODO 배치 I: network.registerMessage(PacketColorRequest.class, PacketColorRequest.ColorRequestMessage.class,
+        // TODO 배치 J: network.registerMessage(PacketColorRequest.class, PacketColorRequest.ColorRequestMessage.class,
         // 7, Side.SERVER);
-        // TODO 배치 I: network.registerMessage(PacketColorCache.class, PacketColorCache.ColorCacheMessage.class, 8,
+        // TODO 배치 J: network.registerMessage(PacketColorCache.class, PacketColorCache.ColorCacheMessage.class, 8,
         // Side.CLIENT);
         network.registerMessage(
             PacketNetworkUpdateRequest.class,
@@ -52,8 +56,8 @@ public class PacketHandler {
             PacketConnectionUpdateRequest.ConnectionRequestMessage.class,
             11,
             Side.SERVER);
-        // TODO 배치 I: network.registerMessage(PacketBatchEditing.class, PacketBatchEditing.BatchEditingMessage.class,
-        // 12, Side.SERVER);
+        network
+            .registerMessage(PacketBatchEditing.class, PacketBatchEditing.BatchEditingMessage.class, 12, Side.SERVER);
         network.registerMessage(
             PacketPermissionRequest.class,
             PacketPermissionRequest.PermissionRequestMessage.class,
@@ -70,9 +74,9 @@ public class PacketHandler {
             PacketActivateSuperAdmin.ActivateSuperAdminMessage.class,
             16,
             Side.SERVER);
-        // TODO 배치 I: network.registerMessage(PacketConfiguratorSettings.class,
+        // TODO 배치 J: network.registerMessage(PacketConfiguratorSettings.class,
         // PacketConfiguratorSettings.ConfiguratorSettingsMessage.class, 17, Side.SERVER);
-        // TODO 배치 I: network.registerMessage(PacketSetConfiguratorNetwork.class,
+        // TODO 배치 J: network.registerMessage(PacketSetConfiguratorNetwork.class,
         // PacketSetConfiguratorNetwork.SetConfiguratorNetworkMessage.class, 18, Side.SERVER);
     }
 

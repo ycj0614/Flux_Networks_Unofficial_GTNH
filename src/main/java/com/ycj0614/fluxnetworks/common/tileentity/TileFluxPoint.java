@@ -13,6 +13,8 @@ import com.ycj0614.fluxnetworks.api.utils.NBTType;
 import com.ycj0614.fluxnetworks.common.connection.transfer.FluxPointHandler;
 import com.ycj0614.fluxnetworks.common.core.GTEnergy;
 
+import io.netty.buffer.ByteBuf;
+
 public class TileFluxPoint extends TileFluxConnector implements IFluxPoint {
 
     /** 출력 티어 NBT 키 (ALL_SAVE, TILE_UPDATE, TILE_DROP 공통) */
@@ -60,6 +62,30 @@ public class TileFluxPoint extends TileFluxConnector implements IFluxPoint {
     public void setOutputAmperage(long amperage) {
         outputAmperage = Math.max(1L, amperage);
         notifySettingChanged();
+    }
+
+    // ---- ITileByteBuf: ID 6 = 출력 티어(int), ID 7 = 출력 암페어(long). 나머지는 TileFluxCore ----
+
+    @Override
+    public void writePacket(ByteBuf buf, int id) {
+        if (id == 6) {
+            buf.writeInt(outputTier);
+        } else if (id == 7) {
+            buf.writeLong(outputAmperage);
+        } else {
+            super.writePacket(buf, id);
+        }
+    }
+
+    @Override
+    public void readPacket(ByteBuf buf, int id) {
+        if (id == 6) {
+            setOutputTier(buf.readInt()); // setter가 범위 보정과 동기화를 한다
+        } else if (id == 7) {
+            setOutputAmperage(buf.readLong());
+        } else {
+            super.readPacket(buf, id);
+        }
     }
 
     /**

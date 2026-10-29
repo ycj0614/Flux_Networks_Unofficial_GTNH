@@ -11,6 +11,8 @@ import com.ycj0614.fluxnetworks.api.utils.NBTType;
 import com.ycj0614.fluxnetworks.common.connection.transfer.FluxPlugHandler;
 import com.ycj0614.fluxnetworks.common.core.GTEnergy;
 
+import io.netty.buffer.ByteBuf;
+
 public class TileFluxPlug extends TileFluxConnector implements IFluxPlug {
 
     /** 최대 입력 티어 NBT 키 (ALL_SAVE, TILE_UPDATE, TILE_DROP 공통) */
@@ -44,6 +46,26 @@ public class TileFluxPlug extends TileFluxConnector implements IFluxPlug {
     public void setMaxInputTier(int tier) {
         maxInputTier = GTEnergy.clampTier(tier);
         notifySettingChanged();
+    }
+
+    // ---- ITileByteBuf: ID 6 = 최대 입력 티어(int). 나머지는 TileFluxCore (ID 표는 TileFluxCore.writePacket 위) ----
+
+    @Override
+    public void writePacket(ByteBuf buf, int id) {
+        if (id == 6) {
+            buf.writeInt(maxInputTier);
+        } else {
+            super.writePacket(buf, id);
+        }
+    }
+
+    @Override
+    public void readPacket(ByteBuf buf, int id) {
+        if (id == 6) {
+            setMaxInputTier(buf.readInt()); // setter가 범위 보정과 동기화를 한다
+        } else {
+            super.readPacket(buf, id);
+        }
     }
 
     @Override

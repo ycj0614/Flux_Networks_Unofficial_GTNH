@@ -39,6 +39,9 @@ public abstract class TileFluxCore extends TileEntity implements IFluxConnector,
     public static final String NBT_LIMIT = "limit";
     public static final String NBT_DISABLE_LIMIT = "disableLimit";
 
+    /** 장치 이름 최대 길이 (원작 GUI 입력칸 setMaxStringLength(24)) */
+    public static final int MAX_CUSTOM_NAME_LENGTH = 24;
+
     /** 인접 타일을 다시 확인하는 주기 (틱). GT 케이블도 20틱마다 연결을 다시 확인한다. */
     public static final int TRANSFER_UPDATE_INTERVAL = 20;
 
@@ -72,6 +75,14 @@ public abstract class TileFluxCore extends TileEntity implements IFluxConnector,
     protected int transferUpdateTimer = 0;
 
     public Coord4D coord4D;
+
+    /** null이면 빈 문자열, 24자를 넘으면 앞 24자만 남긴다 */
+    public static String limitCustomName(String name) {
+        if (name == null) {
+            return "";
+        }
+        return name.length() > MAX_CUSTOM_NAME_LENGTH ? name.substring(0, MAX_CUSTOM_NAME_LENGTH) : name;
+    }
 
     @Override
     public void invalidate() {
@@ -281,6 +292,18 @@ public abstract class TileFluxCore extends TileEntity implements IFluxConnector,
         return true;
     }
 
+    /*
+     * ITileByteBuf ID 표 (PacketByteBuf, 배치 L의 GUI가 참조)
+     * ID | 값 | 형식 | 대상
+     * 1 | 이름 | UTF8 | 모든 장치. 서버는 최대 24자로 자른다
+     * 2 | 우선순위 | int | 모든 장치. 연결 정렬 다시 함
+     * 3 | 한도 | long | 모든 장치. 음수면 0. 포인트는 출력 한도로 쓰지 않음 (출력 = V×A)
+     * 4 | 서지 모드 | boolean | 모든 장치. 연결 정렬 다시 함
+     * 5 | 한도 해제 | boolean | 모든 장치. 포인트는 쓰지 않음
+     * 6 | 티어 | int | 플러그 maxInputTier, 포인트 outputTier (TileFluxPlug / TileFluxPoint)
+     * 7 | 출력 암페어 | long | 포인트만 (TileFluxPoint). 1 미만은 1
+     * 대상 장치가 다루지 않는 ID는 아무것도 쓰거나 읽지 않는다.
+     */
     @Override
     public void writePacket(ByteBuf buf, int id) {
         switch (id) {
@@ -302,11 +325,13 @@ public abstract class TileFluxCore extends TileEntity implements IFluxConnector,
         }
     }
 
+    /** ID 표는 writePacket 위 주석 참조 */
     @Override
     public void readPacket(ByteBuf buf, int id) {
         switch (id) {
             case 1:
-                customName = ByteBufUtils.readUTF8String(buf);
+                // 보안: 장치 이름은 최대 24자로 자른다
+                customName = limitCustomName(ByteBufUtils.readUTF8String(buf));
                 markLiteSettingChanged();
                 break;
             case 2:
@@ -314,7 +339,8 @@ public abstract class TileFluxCore extends TileEntity implements IFluxConnector,
                 sortNetworkConnections();
                 break;
             case 3:
-                limit = buf.readLong();
+                // 음수 한도는 0
+                limit = Math.max(0L, buf.readLong());
                 markLiteSettingChanged();
                 break;
             case 4:
