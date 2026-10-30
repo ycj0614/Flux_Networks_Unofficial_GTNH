@@ -36,8 +36,8 @@ git -C ../reference/GT5-Unofficial sparse-checkout set src/main/java/gregtech/ap
 | 단계 | 배치 | 상태 |
 | --- | --- | --- |
 | 1단계 EU 전송 MVP | A API / B 진입점·설정·프록시 / C 네트워크 코어 / D 저장 데이터·FluxUtils / E 전송 핸들러 / F 타일 / G 블록·등록·디버그 명령 | 완료, 게임 테스트 통과 |
-| 2단계 GUI·패킷 | H 패킷 기반·SuperAdmin·동기화 패킷 / I 명령 패킷 | 완료 |
-| 2단계 남은 배치 | **J** → K → L → M | 다음은 **J** |
+| 2단계 GUI·패킷 | H 패킷 기반·SuperAdmin·동기화 패킷 / I 명령 패킷 / J 구성기·ItemBlock·색상 캐시 / K GUI 틀 | 완료 |
+| 2단계 남은 배치 | **L** → M | 다음은 **L** |
 | 3단계 | 스토리지, 컨트롤러, 플럭스 블록, 청크 로딩, 원작 모양 렌더링, 네트워크 색상 | 대기 |
 | 4단계 | 컨트롤러 무선 충전 (GT 전기 아이템) | 대기 |
 | 5단계 | GT 레시피, NEI, WAILA, 배포 | 대기 |

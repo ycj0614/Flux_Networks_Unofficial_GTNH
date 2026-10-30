@@ -5,11 +5,13 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.player.EntityPlayer;
 
 import com.ycj0614.fluxnetworks.FluxNetworks;
 import com.ycj0614.fluxnetworks.api.gui.EnumFeedbackInfo;
 import com.ycj0614.fluxnetworks.api.network.AccessLevel;
+import com.ycj0614.fluxnetworks.client.gui.basic.GuiFluxCore;
 import com.ycj0614.fluxnetworks.common.CommonProxy;
 import com.ycj0614.fluxnetworks.common.connection.FluxNetworkCache;
 import com.ycj0614.fluxnetworks.common.network.PacketColorCache;
@@ -97,9 +99,12 @@ public class ClientProxy extends CommonProxy {
     @Override
     public void setGuiAccessPermission(AccessLevel accessPermission) {
         this.guiAccessPermission = accessPermission;
-        // TODO 배치 K: 열린 GuiFluxCore.accessPermission에 반영하고 onSuperAdminChanged() 호출
-        // (원작: Minecraft.getMinecraft().currentScreen이 GuiFluxCore면 guiFluxCore.accessPermission = 값;
-        // guiFluxCore.onSuperAdminChanged())
+        GuiScreen screen = Minecraft.getMinecraft().currentScreen;
+        if (screen instanceof GuiFluxCore) {
+            GuiFluxCore guiFluxCore = (GuiFluxCore) screen;
+            guiFluxCore.accessPermission = accessPermission;
+            guiFluxCore.onSuperAdminChanged();
+        }
     }
 
     @Override
@@ -109,8 +114,10 @@ public class ClientProxy extends CommonProxy {
 
     @Override
     public void onSuperAdminChanged() {
-        // TODO 배치 K: 열린 GuiFluxCore.onSuperAdminChanged() 호출
-        // (원작: Minecraft.getMinecraft().currentScreen이 GuiFluxCore면 guiFluxCore.onSuperAdminChanged())
+        GuiScreen screen = Minecraft.getMinecraft().currentScreen;
+        if (screen instanceof GuiFluxCore) {
+            ((GuiFluxCore) screen).onSuperAdminChanged();
+        }
     }
 
     @Override
