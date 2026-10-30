@@ -70,7 +70,6 @@ public abstract class TileFluxConnector extends TileFluxCore implements IEnergyC
             int tz = zCoord + dir.offsetZ;
             // 인접 청크가 로드되지 않았으면 getTileEntity가 청크를 불러오므로 확인하지 않고 표시 상태를 유지한다.
             // 청크가 로드되면 주기적 updateTransfers로 다시 확인된다.
-            // TODO 확인: World.blockExists(int, int, int) (1.7.10 MCP 이름, 1.8+의 isBlockLoaded)
             if (!worldObj.blockExists(tx, ty, tz)) {
                 continue;
             }

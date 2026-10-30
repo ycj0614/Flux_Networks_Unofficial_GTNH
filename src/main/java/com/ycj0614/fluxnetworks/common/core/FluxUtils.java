@@ -33,7 +33,6 @@ public class FluxUtils {
 
     public static UUID UUID_DEFAULT = new UUID(-1, -1);
 
-    // TODO 확인: 1.7.10 Material(MapColor) 생성자가 public인지 (protected라면 익명 서브클래스 new Material(...) {}로 변경)
     public static Material MACHINE = new Material(MapColor.blackColor);
 
     public static <E extends Enum> E incrementEnum(E enumObj, E[] values) {

@@ -282,7 +282,7 @@ public class FluxNetworkData extends WorldSavedData {
             return;
         }
         NBTTagCompound tags = nbt.getCompoundTag(LOADED_CHUNKS);
-        // TODO 확인: func_150296_c() = getKeySet() (1.7.10 미매핑 이름, 반환형 raw Set의 원소는 String)
+        // func_150296_c() = getKeySet() (1.7.10 미매핑 이름, 반환형 raw Set의 원소는 String)
         for (Object o : tags.func_150296_c()) {
             String key = (String) o;
             NBTTagList list = tags.getTagList(key, Constants.NBT.TAG_COMPOUND);

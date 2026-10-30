@@ -73,7 +73,6 @@ public class FluxConfig {
     public static void generateFluxChunkConfig() {
         if (!ForgeChunkManager.getConfig()
             .hasCategory(FluxNetworks.MODID)) {
-            // TODO 확인: 1.7.10 Property에 setMinValue(int)가 있는지
             ForgeChunkManager.getConfig()
                 .get(FluxNetworks.MODID, "maximumChunksPerTicket", 1000000)
                 .setMinValue(0);
@@ -86,8 +85,6 @@ public class FluxConfig {
     }
 
     public static void read() {
-        // TODO 확인: Configuration.getInt(String, String, int, int, int, String) / getBoolean(String, String, boolean,
-        // String)이 10.13.4.1614에 있는지
         defaultLimit = config.getInt(
             "Default Plug Transfer Limit",
             ENERGY,
@@ -179,7 +176,6 @@ public class FluxConfig {
 
     public static String[] getBlackList(String name, String category, String[] defaultValue, String comment) {
         Property prop = config.get(category, name, defaultValue);
-        // TODO 확인: 1.7.10 Property에 setLanguageKey(String), setValidValues(String[])가 있는지
         prop.setLanguageKey(name);
         prop.setValidValues(null);
         prop.comment = comment;

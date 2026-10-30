@@ -41,8 +41,7 @@ public class NetworkMember {
         boolean isOffline = !server.isServerInOnlineMode();
 
         if (!isOffline) {
-            // TODO 확인: func_152358_ax() = getPlayerProfileCache() (반환형 PlayerProfileCache),
-            // func_152655_a(String) = getGameProfileForUsername(String)
+            // func_152358_ax() = getPlayerProfileCache(), func_152655_a(String) = getGameProfileForUsername(String)
             GameProfile profile = server.func_152358_ax()
                 .func_152655_a(username);
             if (profile != null) {

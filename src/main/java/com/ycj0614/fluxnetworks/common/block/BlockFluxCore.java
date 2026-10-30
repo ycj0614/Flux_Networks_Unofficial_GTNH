@@ -61,7 +61,7 @@ public abstract class BlockFluxCore extends Block {
      * @param iconName 아이콘 이름 (textures/blocks/&lt;iconName&gt;_on.png, _off.png)
      */
     protected BlockFluxCore(String name, String iconName) {
-        // 원작은 FluxUtils.MACHINE. 배치 D의 MACHINE이 "TODO 확인:" 상태이므로 지시대로 Material.iron 사용
+        // 원작은 FluxUtils.MACHINE. 1단계 결정대로 Material.iron 사용
         super(Material.iron);
         this.iconName = iconName;
         setHardness(0.3F);

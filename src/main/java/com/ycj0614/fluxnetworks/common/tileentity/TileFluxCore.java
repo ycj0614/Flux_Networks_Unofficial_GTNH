@@ -175,7 +175,7 @@ public abstract class TileFluxCore extends TileEntity implements IFluxConnector,
 
     @Override
     public void onDataPacket(NetworkManager net, S35PacketUpdateTileEntity pkt) {
-        // TODO 확인: S35PacketUpdateTileEntity의 NBT getter 이름 (1.7.10 MCP: func_148857_g, 1.8+의 getNbtCompound)
+        // func_148857_g() = S35PacketUpdateTileEntity의 NBT getter (1.8+의 getNbtCompound)
         NBTTagCompound tag = pkt.func_148857_g();
         if (tag == null) {
             return;

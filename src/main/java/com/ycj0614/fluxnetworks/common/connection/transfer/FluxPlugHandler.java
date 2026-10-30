@@ -145,7 +145,6 @@ public class FluxPlugHandler extends BasicTransferHandler<IFluxPlug> {
             int tz = z + dir.offsetZ;
             // 인접 청크가 로드되지 않았으면 getTileEntity가 청크를 강제로 불러오므로 연결을 끊고 넘어간다.
             // 청크가 다시 로드된 뒤에는 타일 쪽의 주기적 updateTransfers 호출로 다시 연결된다 (배치 F).
-            // TODO 확인: World.blockExists(int, int, int) (1.7.10 MCP 이름, 1.8+의 isBlockLoaded)
             if (!world.blockExists(tx, ty, tz)) {
                 transfers.remove(dir);
                 continue;

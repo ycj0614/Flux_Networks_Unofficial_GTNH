@@ -40,7 +40,6 @@ public class TileEntityHandler {
         if (block == null) {
             return false;
         }
-        // TODO 확인: GameRegistry.findUniqueIdentifierFor(Block)와 UniqueIdentifier의 public 필드 modId, name
         GameRegistry.UniqueIdentifier id = GameRegistry.findUniqueIdentifierFor(block);
         if (id == null) {
             return false;
