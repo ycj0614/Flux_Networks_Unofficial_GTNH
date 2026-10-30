@@ -178,8 +178,7 @@ public abstract class GuiFluxCore extends GuiPopUpHost {
             y + 10,
             0xffffff);
 
-        // TODO 배치 L: 장치 아이콘 표시 (원작: renderItemStack(fluxConnector.getDisplayStack(), x - 20, y + 1).
-        // IFluxConnector에 getDisplayStack()이 아직 없다)
+        renderItemStack(fluxConnector.getDisplayStack(), x - 20, y + 1);
 
         GL11.glPopMatrix();
     }
@@ -201,8 +200,13 @@ public abstract class GuiFluxCore extends GuiPopUpHost {
             }
         } else {
             list.add(EnumChatFormatting.RED + FluxTranslate.CHUNK_UNLOADED.t());
-            // TODO 배치 L: 언로드된 장치의 저장량·버퍼 표시 (원작: getDisplayStack()의 FLUX_DATA 하위 태그에서
-            // "energy"가 있으면 ENERGY_STORED, 없으면 "buffer"를 INTERNAL_BUFFER로 표시)
+            // 원작과 다름: 원작은 표시용 ItemStack의 FLUX_DATA에서 읽었다. 여기서는 언로드 직전에 저장한 값(FluxLiteConnector)을 쓴다
+            String buffer = FluxUtils.format(flux.getTransferBuffer(), FluxUtils.TypeNumberFormat.COMMAS, false);
+            if (flux.getConnectionType() == ConnectionType.STORAGE) {
+                list.add(FluxTranslate.ENERGY_STORED.t() + ": " + EnumChatFormatting.BLUE + buffer);
+            } else {
+                list.add(FluxTranslate.INTERNAL_BUFFER.t() + ": " + EnumChatFormatting.BLUE + buffer);
+            }
         }
 
         list.add(

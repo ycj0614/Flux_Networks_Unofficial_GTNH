@@ -3,6 +3,7 @@ package com.ycj0614.fluxnetworks.api.tiles;
 import java.util.UUID;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 
@@ -12,6 +13,7 @@ import com.ycj0614.fluxnetworks.api.network.INetworkConnector;
 import com.ycj0614.fluxnetworks.api.network.ITransferHandler;
 import com.ycj0614.fluxnetworks.api.utils.Coord4D;
 import com.ycj0614.fluxnetworks.api.utils.NBTType;
+import com.ycj0614.fluxnetworks.common.core.FluxUtils;
 
 /**
  * Extended by IFluxPoint and IFluxPlug
@@ -79,4 +81,12 @@ public interface IFluxConnector extends INetworkConnector {
     long getTransferChange();
 
     default void setChunkLoaded(boolean chunkLoaded) {}
+
+    /**
+     * GUI 연결 목록에 그릴 아이콘. 원작과 다름: 원작은 언로드된 장치의 표시용 ItemStack을 NBT로 저장했지만,
+     * 여기서는 연결 종류로만 정한다 (버퍼는 getTransferBuffer()의 마지막 값으로 표시)
+     */
+    default ItemStack getDisplayStack() {
+        return FluxUtils.getDisplayStack(getConnectionType());
+    }
 }

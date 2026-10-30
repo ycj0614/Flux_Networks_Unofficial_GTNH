@@ -20,6 +20,7 @@ import com.ycj0614.fluxnetworks.api.network.IFluxNetwork;
 import com.ycj0614.fluxnetworks.api.tiles.IFluxConnector;
 import com.ycj0614.fluxnetworks.api.translate.FluxTranslate;
 import com.ycj0614.fluxnetworks.common.connection.FluxNetworkCache;
+import com.ycj0614.fluxnetworks.common.registry.RegistryBlocks;
 
 public class FluxUtils {
 
@@ -96,6 +97,28 @@ public class FluxUtils {
             return true;
         }
         return false;
+    }
+
+    private static ItemStack plugStack, pointStack;
+
+    /** 연결 종류별 GUI 표시용 아이템 (원작 FluxGuiStack). 그리기만 하므로 같은 인스턴스를 돌려준다 */
+    @Nullable
+    public static ItemStack getDisplayStack(ConnectionType type) {
+        switch (type) {
+            case PLUG:
+                if (plugStack == null) {
+                    plugStack = new ItemStack(RegistryBlocks.FLUX_PLUG);
+                }
+                return plugStack;
+            case POINT:
+                if (pointStack == null) {
+                    pointStack = new ItemStack(RegistryBlocks.FLUX_POINT);
+                }
+                return pointStack;
+            default:
+                // TODO 3단계: 컨트롤러·스토리지 아이콘 (원작: FluxGuiStack.FLUX_CONTROLLER, FLUX_STORAGE_1)
+                return null;
+        }
     }
 
     @Nullable

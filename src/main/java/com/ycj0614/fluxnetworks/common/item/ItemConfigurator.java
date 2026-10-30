@@ -23,6 +23,7 @@ import com.ycj0614.fluxnetworks.client.FluxColorHandler;
 import com.ycj0614.fluxnetworks.common.CommonProxy;
 import com.ycj0614.fluxnetworks.common.connection.FluxNetworkCache;
 import com.ycj0614.fluxnetworks.common.core.FluxUtils;
+import com.ycj0614.fluxnetworks.common.handler.GuiHandler;
 import com.ycj0614.fluxnetworks.common.tileentity.TileFluxCore;
 
 import cpw.mods.fml.relauncher.Side;
@@ -91,8 +92,10 @@ public class ItemConfigurator extends Item {
 
     @Override
     public ItemStack onItemRightClick(ItemStack stack, World world, EntityPlayer player) {
-        // TODO 배치 L: 서버에서 player.openGui(FluxNetworks.instance, GuiHandler.GUI_ITEM, world, 0, 0, 0)
-        // (원작: 공중이나 플럭스 장치가 아닌 블록을 우클릭하면 구성기 GUI를 연다. GUI 화면이 생길 때까지 열지 않는다)
+        // 공중이나 플럭스 장치가 아닌 블록을 우클릭하면 GUI를 연다 (플럭스 장치는 onItemUse가 처리)
+        if (!world.isRemote) {
+            player.openGui(FluxNetworks.instance, GuiHandler.GUI_ITEM, world, 0, 0, 0);
+        }
         return stack;
     }
 

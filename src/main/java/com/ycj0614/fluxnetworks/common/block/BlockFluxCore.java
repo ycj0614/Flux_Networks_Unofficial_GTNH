@@ -21,10 +21,11 @@ import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import com.ycj0614.fluxnetworks.FluxNetworks;
+import com.ycj0614.fluxnetworks.api.translate.FluxTranslate;
 import com.ycj0614.fluxnetworks.api.utils.NBTType;
 import com.ycj0614.fluxnetworks.common.CommonProxy;
-import com.ycj0614.fluxnetworks.common.command.CommandFluxDebug;
 import com.ycj0614.fluxnetworks.common.core.FluxUtils;
+import com.ycj0614.fluxnetworks.common.handler.GuiHandler;
 import com.ycj0614.fluxnetworks.common.item.ItemConfigurator;
 import com.ycj0614.fluxnetworks.common.tileentity.TileFluxConnector;
 import com.ycj0614.fluxnetworks.common.tileentity.TileFluxCore;
@@ -120,14 +121,28 @@ public abstract class BlockFluxCore extends Block {
         if (world.isRemote) {
             return true;
         }
-        // TODO 배치 L: GUI 열기, 점유 중·권한 거부 메시지 (원작: playerUsing이 있으면 ACCESS_OCCUPY, canAccess 실패 시
-        // ACCESS_DENIED, 아니면 player.openGui(FluxNetworks.instance, GuiHandler.GUI_TILE, world, x, y, z))
         TileEntity tile = world.getTileEntity(x, y, z);
         if (tile instanceof TileFluxCore) {
-            // 1단계 임시 동작: /fluxdebug info와 같은 정보를 채팅으로 보여준다 (TODO 2단계 완료 후 삭제)
-            CommandFluxDebug.sendInfo(player, (TileFluxCore) tile);
+            TileFluxCore fluxCore = (TileFluxCore) tile;
+            if (!fluxCore.playerUsing.isEmpty()) {
+                sendDeniedMessage(player, FluxTranslate.ACCESS_OCCUPY_KEY);
+                return true;
+            } else if (fluxCore.canAccess(player)) {
+                player.openGui(FluxNetworks.instance, GuiHandler.GUI_TILE, world, x, y, z);
+                return true;
+            }
         }
+        sendDeniedMessage(player, FluxTranslate.ACCESS_DENIED_KEY);
         return true;
+    }
+
+    /** 원작은 액션바(sendStatusMessage)에 띄웠다. 1.7.10에는 없으므로 채팅으로 보낸다 */
+    private static void sendDeniedMessage(EntityPlayer player, String key) {
+        ChatComponentTranslation message = new ChatComponentTranslation(key);
+        message.getChatStyle()
+            .setBold(true)
+            .setColor(EnumChatFormatting.DARK_RED);
+        player.addChatMessage(message);
     }
 
     // ---- 설치 ----

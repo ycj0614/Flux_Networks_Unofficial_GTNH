@@ -9,6 +9,7 @@ import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
+import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
 
 import com.ycj0614.fluxnetworks.FluxConfig;
@@ -171,6 +172,11 @@ public class CommonProxy {
     }
 
     public void onSuperAdminChanged() {}
+
+    /** GuiHandler.getClientGuiElement 위임. 서버에서는 호출되지 않는다 */
+    public Object getClientGuiElement(int ID, EntityPlayer player, World world, int x, int y, int z) {
+        return null;
+    }
 
     /** PacketColorCache 수신 (클라이언트 메인 스레드) */
     public void receiveColorCache(Map<Integer, PacketColorCache.Entry> cache) {}

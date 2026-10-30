@@ -16,7 +16,8 @@ public class ConnectionTransfer {
     private final TileEntity tile;
     private final ForgeDirection side;
 
-    // TODO 2단계: GUI 연결 목록 표시용 ItemStack (FluxUtils.getBlockItem 사용)
+    // TODO 5단계: 인접 장치 아이콘 표시가 필요하면 (WAILA 등) 표시용 ItemStack 추가.
+    // 원작: 생성자에서 FluxUtils.getBlockItem으로 만든 displayStack. 원작 GUI에서는 쓰지 않았다
 
     /** 상대 타일에서 나와 플러그로 들어온 EU (이번 틱, 상대 타일 기준 "나감") */
     public long outbound;

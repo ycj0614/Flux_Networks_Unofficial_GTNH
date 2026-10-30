@@ -32,9 +32,8 @@ public class FluxLiteConnector implements IFluxConnector {
     public boolean chunkLoading;
     public long buffer;
     public long change;
-    // TODO 2단계: 표시용 ItemStack 저장 (1.7.10은 ItemStack.loadItemStackFromNBT)
-    // (원작: ItemStack stack 필드에 tile.getDisplayStack()을 담고 같은 태그에 writeToNBT / new ItemStack(tag)로 저장·복원,
-    // getDisplayStack()으로 GUI에 아이콘 표시)
+    // 원작과 다름: 원작은 표시용 ItemStack(tile.getDisplayStack())도 저장했다.
+    // 여기서는 IFluxConnector.getDisplayStack()이 연결 종류로 아이콘을 정하므로 저장하지 않는다
 
     public FluxLiteConnector(IFluxConnector tile) {
         this.networkID = tile.getNetworkID();
@@ -53,7 +52,6 @@ public class FluxLiteConnector implements IFluxConnector {
         this.change = tile.getTransferHandler()
             .getChange();
         this.chunkLoading = tile.isForcedLoading();
-        // TODO 2단계: 표시용 ItemStack 저장 (원작: this.stack = tile.getDisplayStack())
     }
 
     public FluxLiteConnector(NBTTagCompound tag) {
@@ -78,7 +76,6 @@ public class FluxLiteConnector implements IFluxConnector {
         tag.setLong("buffer", tile.getTransferBuffer());
         tag.setLong("change", tile.getTransferChange());
         tag.setBoolean("forcedChunk", tile.isForcedLoading());
-        // TODO 2단계: 표시용 ItemStack 저장 (원작: tile.getDisplayStack().writeToNBT(tag))
         return tag;
     }
 
@@ -97,7 +94,6 @@ public class FluxLiteConnector implements IFluxConnector {
         tag.setLong("buffer", buffer);
         tag.setLong("change", change);
         tag.setBoolean("forcedChunk", chunkLoading);
-        // TODO 2단계: 표시용 ItemStack 저장 (원작: stack.writeToNBT(tag))
         return tag;
     }
 
@@ -116,7 +112,6 @@ public class FluxLiteConnector implements IFluxConnector {
         buffer = tag.getLong("buffer");
         change = tag.getLong("change");
         chunkLoading = tag.getBoolean("forcedChunk");
-        // TODO 2단계: 표시용 ItemStack 저장 (원작: stack = new ItemStack(tag) → 1.7.10은 ItemStack.loadItemStackFromNBT(tag))
     }
 
     @Override

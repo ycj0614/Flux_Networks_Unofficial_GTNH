@@ -7,6 +7,7 @@ import net.minecraft.world.World;
 import com.ycj0614.fluxnetworks.FluxNetworks;
 import com.ycj0614.fluxnetworks.api.network.IFluxNetwork;
 import com.ycj0614.fluxnetworks.api.network.INetworkConnector;
+import com.ycj0614.fluxnetworks.common.handler.GuiHandler;
 
 /**
  * 관리자 구성기. 장치에는 쓰지 않고, GUI에서 SuperAdmin이 모든 네트워크를 열람한다.
@@ -25,8 +26,10 @@ public class ItemAdminConfigurator extends ItemConfigurator {
 
     @Override
     public ItemStack onItemRightClick(ItemStack stack, World world, EntityPlayer player) {
-        // TODO 배치 L: 서버에서 player.openGui(FluxNetworks.instance, GuiHandler.GUI_ITEM, world, 0, 0, 0)
-        // (원작: 우클릭하면 관리자 GUI(GuiFluxAdminHome)를 연다. GUI 화면이 생길 때까지 열지 않는다)
+        // 공중이나 플럭스 장치가 아닌 블록을 우클릭하면 GUI를 연다 (플럭스 장치는 onItemUse가 처리)
+        if (!world.isRemote) {
+            player.openGui(FluxNetworks.instance, GuiHandler.GUI_ITEM, world, 0, 0, 0);
+        }
         return stack;
     }
 

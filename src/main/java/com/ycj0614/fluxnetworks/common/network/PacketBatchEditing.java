@@ -125,7 +125,7 @@ public class PacketBatchEditing implements IMessageHandler<PacketBatchEditing.Ba
             }
             // TODO 3단계: editions[5] 청크 로딩 일괄 편집 (원작 로직: FluxConfig.enableChunkLoading이면 저장 장치는 거부,
             // forceChunk 실패 시 REJECT_SOME 피드백, 해제면 releaseChunk). 지금은 무시한다
-            // TODO 배치 L: 연결 탭에서 티어·암페어 일괄 편집이 필요하면 editions 확장
+            // TODO 3단계: 연결 탭에서 티어·암페어 일괄 편집 (editions 확장, FluxLiteConnector에 EU 설정 추가. 원작에 없는 기능)
             f.sendPackets();
         }
 

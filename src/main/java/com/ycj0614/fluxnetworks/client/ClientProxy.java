@@ -7,14 +7,24 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.world.World;
 
 import com.ycj0614.fluxnetworks.FluxNetworks;
 import com.ycj0614.fluxnetworks.api.gui.EnumFeedbackInfo;
 import com.ycj0614.fluxnetworks.api.network.AccessLevel;
+import com.ycj0614.fluxnetworks.client.gui.GuiFluxAdminHome;
+import com.ycj0614.fluxnetworks.client.gui.GuiFluxConfiguratorHome;
+import com.ycj0614.fluxnetworks.client.gui.GuiFluxConnectorHome;
 import com.ycj0614.fluxnetworks.client.gui.basic.GuiFluxCore;
 import com.ycj0614.fluxnetworks.common.CommonProxy;
 import com.ycj0614.fluxnetworks.common.connection.FluxNetworkCache;
+import com.ycj0614.fluxnetworks.common.handler.GuiHandler;
+import com.ycj0614.fluxnetworks.common.item.ItemAdminConfigurator;
+import com.ycj0614.fluxnetworks.common.item.ItemConfigurator;
 import com.ycj0614.fluxnetworks.common.network.PacketColorCache;
+import com.ycj0614.fluxnetworks.common.tileentity.TileFluxCore;
 
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -118,6 +128,26 @@ public class ClientProxy extends CommonProxy {
         if (screen instanceof GuiFluxCore) {
             ((GuiFluxCore) screen).onSuperAdminChanged();
         }
+    }
+
+    @Override
+    public Object getClientGuiElement(int ID, EntityPlayer player, World world, int x, int y, int z) {
+        if (ID == GuiHandler.GUI_TILE) {
+            TileEntity tile = world.getTileEntity(x, y, z);
+            if (tile instanceof TileFluxCore) {
+                return new GuiFluxConnectorHome(player, (TileFluxCore) tile);
+            }
+        }
+        if (ID == GuiHandler.GUI_ITEM) {
+            ItemStack stack = player.getHeldItem();
+            if (stack != null && stack.getItem() instanceof ItemAdminConfigurator) {
+                return new GuiFluxAdminHome(player, ItemAdminConfigurator.getAdminConnector());
+            }
+            if (stack != null && stack.getItem() instanceof ItemConfigurator) {
+                return new GuiFluxConfiguratorHome(player, ItemConfigurator.getNetworkConnector(stack, world));
+            }
+        }
+        return null;
     }
 
     @Override

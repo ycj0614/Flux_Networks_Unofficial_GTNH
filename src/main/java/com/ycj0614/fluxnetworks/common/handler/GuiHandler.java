@@ -5,6 +5,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
+import com.ycj0614.fluxnetworks.FluxNetworks;
 import com.ycj0614.fluxnetworks.common.core.ContainerCore;
 import com.ycj0614.fluxnetworks.common.item.ItemAdminConfigurator;
 import com.ycj0614.fluxnetworks.common.item.ItemConfigurator;
@@ -43,9 +44,7 @@ public class GuiHandler implements IGuiHandler {
 
     @Override
     public Object getClientGuiElement(int ID, EntityPlayer player, World world, int x, int y, int z) {
-        // TODO 배치 L: 클라이언트 GUI 화면 반환 (원작: ID 0 → GuiFluxConnectorHome(player, 타일),
-        // ID 1 → 관리자 구성기면 GuiFluxAdminHome(player, getAdminConnector()),
-        // 구성기면 GuiFluxConfiguratorHome(player, getNetworkConnector(stack, world)))
-        return null;
+        // 원작과 다름: 공용 클래스가 GUI 클래스를 직접 참조하지 않도록 ClientProxy에서 화면을 만든다
+        return FluxNetworks.proxy.getClientGuiElement(ID, player, world, x, y, z);
     }
 }
