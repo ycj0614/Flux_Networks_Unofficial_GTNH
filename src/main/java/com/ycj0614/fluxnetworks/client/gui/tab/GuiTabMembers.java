@@ -77,7 +77,7 @@ public class GuiTabMembers extends GuiTabPages<NetworkMember> {
 
     @Override
     public void initGui() {
-        // TODO 5단계: 이름으로 멤버 추가 (원작에서도 주석 처리: TextboxButton과 "+" 버튼, PacketGeneralType.ADD_MEMBER)
+        // 이름으로 멤버를 추가하는 입력칸과 "+" 버튼(PacketGeneralType.ADD_MEMBER)은 원작에서도 주석 처리된 기능이라 옮기지 않았다
         super.initGui();
         configureNavigationButtons(EnumNavigationTabs.TAB_MEMBER, navigationTabs);
     }

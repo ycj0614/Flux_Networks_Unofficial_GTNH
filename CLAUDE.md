@@ -5,7 +5,7 @@ Minecraft 1.7.10 / Forge 10.13.4.1614로 옮기는 프로젝트다. **GTNH 전�
 **GregTech 5 Unofficial(GT5U)의 EU만** 다룬다. RF·FE·IC2 에너지는 지원하지 않는다.
 
 - 패키지 `com.ycj0614.fluxnetworks` (원작 `sonar.fluxnetworks`의 하위 구조 유지), 모드 ID `fluxnetworks`
-- 의존성: `com.github.GTNewHorizons:GT5-Unofficial:5.09.54.205:dev` (GTNH 2.9.0-RC-2). 정식 2.9.0이 나오면 숫자만 바꾼다
+- 의존성: `com.github.GTNewHorizons:GT5-Unofficial:5.09.54.264:dev` (GTNH 2.9.0 정식, 배치 Z에서 205 → 264)
 - 빌드: GTNH ExampleMod1.7.10 템플릿(RetroFuturaGradle). 바이트코드는 Java 8
 - 사용자는 한국어를 쓴다. 설명과 코드 주석은 한국어로 쓴다
 
@@ -23,7 +23,7 @@ Minecraft 1.7.10 / Forge 10.13.4.1614로 옮기는 프로젝트다. **GTNH 전�
 
 ```
 git clone --depth 1 --branch 1.12.2-refactored https://github.com/SonarSonic/Flux-Networks.git ../reference/Flux-Networks
-git clone --depth 1 --filter=blob:none --sparse --branch 5.09.54.205 https://github.com/GTNewHorizons/GT5-Unofficial.git ../reference/GT5-Unofficial
+git clone --depth 1 --filter=blob:none --sparse --branch 5.09.54.264 https://github.com/GTNewHorizons/GT5-Unofficial.git ../reference/GT5-Unofficial
 git -C ../reference/GT5-Unofficial sparse-checkout set src/main/java/gregtech/api
 ```
 
@@ -39,7 +39,7 @@ git -C ../reference/GT5-Unofficial sparse-checkout set src/main/java/gregtech/ap
 | 2단계 GUI·패킷 | H 패킷 기반·SuperAdmin·동기화 패킷 / I 명령 패킷 / J 구성기·ItemBlock·색상 캐시 / K GUI 틀 / L GUI 화면 / M `/fluxdebug` 삭제·TODO 정리 | **완료 (마일스톤)**, 데디케이티드 서버 멀티플레이 테스트 통과 |
 | 3단계 | N 스토리지 / O 컨트롤러 / P 플럭스 아이템·블록 / Q 청크 로딩·일괄 편집 / R 원작 모양 렌더링·네트워크 색상 | 완료, 게임 테스트 통과 |
 | 4단계 컨트롤러 무선 충전 | S 아이템 충전 헬퍼 / T 충전 핸들러 / U 무선 GUI 탭 / V 바우블 | 완료, 게임 테스트 통과 |
-| 5단계 마무리·연동 | W 레시피 / X NEI / Y WAILA / Z 배포 | W 완료·게임 테스트 통과, X 완료(게임 테스트 대기), Y 완료(게임 테스트 대기), **다음은 Z** |
+| 5단계 마무리·연동 | W 레시피 / X NEI / Y WAILA / Z 배포 | W·X·Y 완료·게임 테스트 통과, Z 완료(게임 테스트 대기) |
 
 GUI는 **원작 GUI를 그대로 옮긴다** (ModularUI 쓰지 않음).
 
@@ -176,6 +176,13 @@ EU이므로 "IC2 에너지 금지"의 예외로 **아이템 충전에 한해** `
   GT5U를 2.9.0 매니페스트의 **5.09.54.264**로 올리고 빌드·게임 테스트를 다시 한다. 배포 jar를 바우블 없는 환경에서도 실행해 확인 (V의 회색 바우블 칸 확인 포함)
   - `GuiTabMembers`의 `// TODO 5단계:`(이름으로 멤버 추가)는 **넣지 않는다**. 원작에서도 주석 처리된 기능이라는 설명 주석으로 바꾼다
   - `SuperAdminData`의 `// TODO 확인:`(ops.json 플레이어별 레벨)은 SRG 이름을 빌드로 확인해 원작처럼 바꿀지 정하고 TODO를 지운다
+  - 결과 (완료): GT5U 5.09.54.264로 올려도 코드 수정 없이 빌드됨. **바우블 없는 환경은 만들 수 없다**: 런타임에서 Baubles-Expanded를 빼고 `runServer`를 돌리면
+    GT5U(`ItemPowerGoggles`가 `baubles.api.IBauble` 사용)와 ModularUI2가 preInit에서 `NoClassDefFoundError`로 멈춘다(Flux Networks는 gregtech 오류로 건너뜀).
+    그래서 GTNH에는 항상 바우블이 있고, V의 회색 바우블 칸·`baublesLoaded == false` 경로는 방어 코드로만 남긴다. 테스트 스위치는 넣지 않았다.
+    버전은 GTNH 빌드 스크립트가 **git 태그**로 정한다(`mcmod.info`의 `${modVersion}`, `Tags.VERSION`). 첫 배포 태그는 `1.0.0`(사용자가 커밋 후 붙임).
+    `mcmod.info`(설명·저장소 URL·작성자 ycj0614·원작 크레딧·`requiredMods` gregtech), README(한국어 소개·연동·설정·크레딧), `LICENSE-template` → `LICENSE`(원작 고지 아래 포트 저작권 줄),
+    템플릿의 `CODEOWNERS`(@GTNewHorizons/admin) 삭제. `SuperAdminData.canActivateSuperAdmin`은 원작처럼 ops.json의 플레이어별 level 비교
+    (`func_152603_m().func_152683_b(profile)` → `UserListOpsEntry.func_152644_a()`, OP가 아니면 0). `GuiTabMembers` TODO는 설명 주석으로 바꿈
 - 원작의 `MekanismIntegration`, `oc`(OpenComputers), `energy`(RF·FE 등)는 옮기지 않는다 (EU 전용 원칙)
 
 ## 작업 방식

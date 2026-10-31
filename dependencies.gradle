@@ -35,7 +35,8 @@
  */
 dependencies {
     //runtimeOnlyNonPublishable("com.github.GTNewHorizons:NotEnoughItems:2.7.69-GTNH:dev")
-    api("com.github.GTNewHorizons:GT5-Unofficial:5.09.54.205:dev")
+    // GTNH 2.9.0 매니페스트 버전
+    api("com.github.GTNewHorizons:GT5-Unofficial:5.09.54.264:dev")
     // 컨트롤러 무선 충전의 바우블 슬롯 (선택 모드, GTNH 2.9.0 매니페스트 버전)
     compileOnly("com.github.GTNewHorizons:Baubles-Expanded:2.2.27-GTNH:dev")
 }

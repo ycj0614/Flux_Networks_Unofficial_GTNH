@@ -4,6 +4,8 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.management.UserListEntry;
+import net.minecraft.server.management.UserListOpsEntry;
 import net.minecraft.world.World;
 import net.minecraftforge.common.IExtendedEntityProperties;
 import net.minecraftforge.common.util.Constants;
@@ -87,17 +89,14 @@ public class SuperAdminData implements ISuperAdmin, IExtendedEntityProperties {
         if (required <= 0) {
             return true;
         }
-        // 1.7.10 바닐라 명령 권한 판정과 같은 방식: OP이면 서버의 OP 권한 레벨(server.properties의 op-permission-level)을
-        // 요구 레벨과 비교하고, OP가 아니면 false.
-        // (EntityPlayerMP.canCommandSenderUseCommand 내부: getConfigurationManager().func_152596_g(profile) &&
-        // mcServer.getOpPermissionLevel() >= level. 명령 이름이 "seed"/"tell"/"help"/"me"일 때만 예외가 있으므로
-        // 그 외 이름을 넘긴다)
-        // TODO 확인: 원작처럼 ops.json의 플레이어별 level을 쓰려면 아래 경로가 필요하다. 매핑에 따라 이름이 다르므로 IDE에서 확인할 것
-        // ServerConfigurationManager.func_152603_m() (= getOppedPlayers, UserListOps 반환)
-        // → UserList.func_152683_b(GameProfile) (= getEntry, UserListOpsEntry 반환, OP가 아니면 null)
-        // → UserListOpsEntry.func_152644_a() (= getPermissionLevel). OP 여부만은 func_152596_g(GameProfile) (=
-        // canSendCommands)
-        return player.canCommandSenderUseCommand(required, "fluxnetworks");
+        // 원작처럼 ops.json의 플레이어별 level을 요구 레벨과 비교한다 (OP가 아니면 0).
+        // func_152603_m = getOppedPlayers (UserListOps), func_152683_b = getEntry, func_152644_a = getPermissionLevel.
+        // 1.7.10의 /op는 server.properties의 op-permission-level을 level로 기록하므로, ops.json을 직접 고친 경우에만 달라진다
+        UserListEntry entry = server.getConfigurationManager()
+            .func_152603_m()
+            .func_152683_b(player.getGameProfile());
+        int level = entry instanceof UserListOpsEntry ? ((UserListOpsEntry) entry).func_152644_a() : 0;
+        return level >= required;
     }
 
     public static boolean isPlayerSuperAdmin(EntityPlayer player) {
