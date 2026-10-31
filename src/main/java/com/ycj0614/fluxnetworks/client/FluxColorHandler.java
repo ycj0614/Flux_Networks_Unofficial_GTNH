@@ -8,20 +8,30 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraftforge.common.util.Constants;
+
+import com.ycj0614.fluxnetworks.api.network.NetworkSettings;
+import com.ycj0614.fluxnetworks.client.gui.basic.GuiFluxCore;
 import com.ycj0614.fluxnetworks.common.core.FluxUtils;
+import com.ycj0614.fluxnetworks.common.data.FluxNetworkData;
 import com.ycj0614.fluxnetworks.common.handler.PacketHandler;
+import com.ycj0614.fluxnetworks.common.item.ItemConfigurator;
 import com.ycj0614.fluxnetworks.common.network.PacketColorCache;
 import com.ycj0614.fluxnetworks.common.network.PacketColorRequest;
+import com.ycj0614.fluxnetworks.common.tileentity.TileFluxCore;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 /**
- * 원작 FluxColorHandler 중 네트워크 이름·색 캐시 부분. 아이템 툴팁에서 서버에 요청해 받은 값을 보여준다.
+ * 원작 FluxColorHandler. 네트워크 이름·색 캐시(아이템 툴팁에서 서버에 요청해 받은 값)와 블록·아이템 색 입히기.
  * <p>
- * TODO 3단계: 원작의 블록·아이템 색 입히기 (IBlockColor/IItemColor colorMultiplier, colorMultiplierForConfigurator) —
- * tintIndex 1에 연결 안 됨이면 NO_NETWORK_COLOR, 타일이면 getBrighterColor(tile.color, 1.2), 아이템은 FLUX_DATA의 네트워크 색.
- * GUI가 열려 있고 GUI_COLOR 태그가 있으면 GUI의 네트워크 색
+ * 1.7.10에는 IBlockColor/IItemColor와 tintIndex가 없다. 원작의 tintIndex 1(colour 텍스처 레이어)에 입힐 색을
+ * 렌더러(BlockFluxRenderer, ItemFluxDeviceRenderer)와 ItemConfigurator.getColorFromItemStack이 여기서 받아 간다.
  */
 @SideOnly(Side.CLIENT)
 public class FluxColorHandler {
@@ -107,6 +117,50 @@ public class FluxColorHandler {
             sentRequests.addAll(toSend);
             requests.removeAll(toSend);
         }
+    }
+
+    // ---- 색 입히기 (원작 colorMultiplier, tintIndex 1) ----
+
+    /** 월드의 장치 블록. 연결 안 됨이면 NO_NETWORK_COLOR, 연결됐으면 네트워크 색을 조금 밝게 */
+    public static int getBlockColor(TileFluxCore tile) {
+        if (!tile.connected) {
+            return NO_NETWORK_COLOR;
+        }
+        return FluxUtils.getBrighterColor(tile.color, 1.2);
+    }
+
+    /** 장치 아이템. GUI_COLOR 태그가 있으면 열린 GUI의 네트워크 색, 아니면 FLUX_DATA의 네트워크 색 */
+    public static int getItemColor(ItemStack stack) {
+        if (stack.hasTagCompound() && stack.getTagCompound()
+            .getBoolean(FluxUtils.GUI_COLOR)) {
+            GuiScreen screen = Minecraft.getMinecraft().currentScreen;
+            if (screen instanceof GuiFluxCore) {
+                GuiFluxCore guiFluxCore = (GuiFluxCore) screen;
+                return guiFluxCore.network.isInvalid() ? NO_NETWORK_COLOR
+                    : guiFluxCore.network.getSetting(NetworkSettings.NETWORK_COLOR) | 0xff000000;
+            }
+        }
+        if (stack.hasTagCompound() && stack.getTagCompound()
+            .hasKey(FluxUtils.FLUX_DATA, Constants.NBT.TAG_COMPOUND)) {
+            NBTTagCompound tag = stack.getTagCompound()
+                .getCompoundTag(FluxUtils.FLUX_DATA);
+            // 원작과 다름: 원작은 키가 없으면 getInteger의 0(네트워크 0번)을 요청했다
+            int id = tag.hasKey(FluxNetworkData.NETWORK_ID) ? tag.getInteger(FluxNetworkData.NETWORK_ID) : -1;
+            return getOrRequestNetworkColor(id);
+        }
+        return NO_NETWORK_COLOR;
+    }
+
+    /** 구성기 layer1. 구성기 GUI가 열려 있으면 그 네트워크 색, 아니면 복사해 둔 설정의 네트워크 색 */
+    public static int getConfiguratorColor(ItemStack stack) {
+        GuiScreen screen = Minecraft.getMinecraft().currentScreen;
+        if (screen instanceof GuiFluxCore) {
+            GuiFluxCore guiFluxCore = (GuiFluxCore) screen;
+            if (guiFluxCore.connector instanceof ItemConfigurator.NetworkConnector) {
+                return guiFluxCore.network.getSetting(NetworkSettings.NETWORK_COLOR);
+            }
+        }
+        return getOrRequestNetworkColor(ItemConfigurator.getNetworkID(ItemConfigurator.getConfigs(stack)));
     }
 
     public static void receiveCache(Map<Integer, PacketColorCache.Entry> cache) {

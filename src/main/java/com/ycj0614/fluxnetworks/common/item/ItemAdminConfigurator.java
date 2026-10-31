@@ -1,13 +1,18 @@
 package com.ycj0614.fluxnetworks.common.item;
 
+import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.IIcon;
 import net.minecraft.world.World;
 
 import com.ycj0614.fluxnetworks.FluxNetworks;
 import com.ycj0614.fluxnetworks.api.network.IFluxNetwork;
 import com.ycj0614.fluxnetworks.api.network.INetworkConnector;
 import com.ycj0614.fluxnetworks.common.handler.GuiHandler;
+
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 /**
  * 관리자 구성기. 장치에는 쓰지 않고, GUI에서 SuperAdmin이 모든 네트워크를 열람한다.
@@ -16,6 +21,31 @@ public class ItemAdminConfigurator extends ItemConfigurator {
 
     public ItemAdminConfigurator() {
         super("adminconfigurator", "admin_configurator");
+    }
+
+    /** 원작 adminconfigurator 모델은 1레이어 (admin_configurator) */
+    @Override
+    @SideOnly(Side.CLIENT)
+    public void registerIcons(IIconRegister reg) {
+        itemIcon = reg.registerIcon(getIconString());
+    }
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public boolean requiresMultipleRenderPasses() {
+        return false;
+    }
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public IIcon getIconFromDamageForRenderPass(int damage, int pass) {
+        return itemIcon;
+    }
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public int getColorFromItemStack(ItemStack stack, int pass) {
+        return 0xffffff;
     }
 
     @Override

@@ -37,9 +37,8 @@ import cpw.mods.fml.relauncher.SideOnly;
  * 원작 BlockCore + BlockFluxCore + BlockSidedConnection 통합.
  * 1.7.10에는 블록 상태가 없으므로 연결 여부는 타일의 connected / connections[]로만 판단한다.
  * <p>
- * TODO 3단계: 원작 모양 렌더링 (ISBRH, 경계 상자 플러그 0.25~0.75, 포인트 0.375~0.625).
- * 원작의 getActualState, createBlockState, getStateFromMeta, getMetaFromState, getBoundingBox, getRenderLayer,
- * isOpaqueCube/isNormalCube/isFullCube 오버라이드는 1단계에서 삭제했다 (일반 불투명 정육면체로 렌더링).
+ * 렌더링은 원작 JSON 모델을 옮긴 ISBRH(client.render.BlockFluxRenderer)가 한다. 블록은 모델 텍스처 칸(TEX_*)마다
+ * 켜짐·꺼짐 아이콘(textures/blocks/model/)만 정해 준다. 원작 getRenderLayer(CUTOUT)는 1.7.10 렌더 패스 0의 알파 테스트로 대신한다.
  * <p>
  * 아이템 이름·툴팁은 ItemFluxConnector가 맡는다.
  */
@@ -48,22 +47,33 @@ public abstract class BlockFluxCore extends Block {
     /** 원작 FluxTranslate.REMOVAL_DENIED_KEY 와 같은 값 (lang에 이미 있음) */
     public static final String REMOVAL_DENIED_KEY = "info.fluxnetworks.denied.removal";
 
-    private final String iconName;
+    // 원작 JSON 모델의 텍스처 칸 (#0, #1, #top, #colour). #colour가 네트워크 색을 입히는 칸(원작 tintindex 1)
+    public static final int TEX_0 = 0;
+    public static final int TEX_1 = 1;
+    public static final int TEX_TOP = 2;
+    public static final int TEX_COLOUR = 3;
+    private static final int TEX_COUNT = 4;
+
+    /** ClientProxy가 RenderingRegistry에서 받아 넣는다. 서버에서는 쓰이지 않는다 */
+    public static int renderId = -1;
+
+    /** 칸별 {켜짐, 꺼짐} 텍스처 이름 (textures/blocks/model/&lt;이름&gt;.png). null이면 그 칸 없음 */
+    private final String[][] modelTextures = new String[TEX_COUNT][];
+    /** 원작 blockstate의 "particle" 텍스처 칸 */
+    private int particleSlot = TEX_0;
 
     @SideOnly(Side.CLIENT)
-    protected IIcon iconOn;
+    private IIcon[] iconsOn;
 
     @SideOnly(Side.CLIENT)
-    protected IIcon iconOff;
+    private IIcon[] iconsOff;
 
     /**
-     * @param name     번역 키용 이름 (tile.fluxnetworks.&lt;name&gt;.name)
-     * @param iconName 아이콘 이름 (textures/blocks/&lt;iconName&gt;_on.png, _off.png)
+     * @param name 번역 키용 이름 (tile.fluxnetworks.&lt;name&gt;.name)
      */
-    protected BlockFluxCore(String name, String iconName) {
+    protected BlockFluxCore(String name) {
         // 원작은 FluxUtils.MACHINE. 1단계 결정대로 Material.iron 사용
         super(Material.iron);
-        this.iconName = iconName;
         setHardness(0.3F);
         setResistance(1000000.0F);
         setBlockName(FluxNetworks.MODID + "." + name);
@@ -80,32 +90,66 @@ public abstract class BlockFluxCore extends Block {
     @Override
     public abstract TileEntity createTileEntity(World world, int metadata);
 
-    // ---- 아이콘 ----
+    // ---- 모델 텍스처·렌더링 ----
+
+    /** 원작 blockstate의 connected true/false 텍스처 */
+    protected void setModelTexture(int slot, String on, String off) {
+        modelTextures[slot] = new String[] { on, off };
+    }
+
+    protected void setModelTexture(int slot, String name) {
+        setModelTexture(slot, name, name);
+    }
+
+    protected void setParticleSlot(int slot) {
+        particleSlot = slot;
+    }
 
     @Override
     @SideOnly(Side.CLIENT)
     public void registerBlockIcons(IIconRegister reg) {
-        iconOn = reg.registerIcon(FluxNetworks.MODID + ":" + iconName + "_on");
-        iconOff = reg.registerIcon(FluxNetworks.MODID + ":" + iconName + "_off");
-        blockIcon = iconOn;
+        iconsOn = new IIcon[TEX_COUNT];
+        iconsOff = new IIcon[TEX_COUNT];
+        for (int i = 0; i < TEX_COUNT; i++) {
+            if (modelTextures[i] != null) {
+                iconsOn[i] = reg.registerIcon(FluxNetworks.MODID + ":model/" + modelTextures[i][0]);
+                iconsOff[i] = reg.registerIcon(FluxNetworks.MODID + ":model/" + modelTextures[i][1]);
+            }
+        }
+        blockIcon = iconsOn[particleSlot];
     }
 
-    /** 인벤토리·손에 든 모습, 파괴 파티클 */
+    /** 모델 텍스처 칸별 아이콘. 네트워크에 연결되어 있으면 켜짐 */
+    @SideOnly(Side.CLIENT)
+    public IIcon[] getModelIcons(boolean connected) {
+        return connected ? iconsOn : iconsOff;
+    }
+
+    /** 아이템 모습에 켜짐 텍스처를 쓸지 (원작 blockstate의 inventory 변형) */
+    public boolean isItemModelConnected() {
+        return true;
+    }
+
+    /** 파괴 파티클 (원작 "particle" 텍스처) */
     @Override
     @SideOnly(Side.CLIENT)
     public IIcon getIcon(int side, int meta) {
-        return iconOn;
+        return blockIcon;
     }
 
-    /** 월드 안: 네트워크에 연결되어 있으면 on, 아니면 off */
     @Override
-    @SideOnly(Side.CLIENT)
-    public IIcon getIcon(IBlockAccess world, int x, int y, int z, int side) {
-        TileEntity tile = world.getTileEntity(x, y, z);
-        if (tile instanceof TileFluxCore && ((TileFluxCore) tile).connected) {
-            return iconOn;
-        }
-        return iconOff;
+    public boolean isOpaqueCube() {
+        return false;
+    }
+
+    @Override
+    public boolean renderAsNormalBlock() {
+        return false;
+    }
+
+    @Override
+    public int getRenderType() {
+        return renderId;
     }
 
     // ---- 우클릭 ----

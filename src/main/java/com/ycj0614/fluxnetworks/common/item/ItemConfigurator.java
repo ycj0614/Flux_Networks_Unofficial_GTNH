@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
+import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -11,6 +12,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.IIcon;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
 
@@ -39,7 +41,7 @@ public class ItemConfigurator extends Item {
     public static final String CONFIG_PASTED_KEY = "info.fluxnetworks.configurator.pasted";
 
     public ItemConfigurator() {
-        this("fluxconfigurator", "flux_configurator_flat");
+        this("fluxconfigurator", "flux_configurator_layer0");
     }
 
     /**
@@ -50,7 +52,36 @@ public class ItemConfigurator extends Item {
         setUnlocalizedName(FluxNetworks.MODID + "." + name);
         setTextureName(FluxNetworks.MODID + ":" + textureName);
         setCreativeTab(CommonProxy.creativeTabs);
-        // TODO 3단계: 원작의 2레이어 모델(flux_configurator_layer0/1)과 layer1의 네트워크 색 입히기
+    }
+
+    // ---- 아이콘: 원작 2레이어 모델 (layer0 본체, layer1에 네트워크 색) ----
+
+    @SideOnly(Side.CLIENT)
+    private IIcon layer1;
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public void registerIcons(IIconRegister reg) {
+        itemIcon = reg.registerIcon(getIconString());
+        layer1 = reg.registerIcon(FluxNetworks.MODID + ":flux_configurator_layer1");
+    }
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public boolean requiresMultipleRenderPasses() {
+        return true;
+    }
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public IIcon getIconFromDamageForRenderPass(int damage, int pass) {
+        return pass == 1 ? layer1 : itemIcon;
+    }
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public int getColorFromItemStack(ItemStack stack, int pass) {
+        return pass == 1 ? FluxColorHandler.getConfiguratorColor(stack) & 0xffffff : 0xffffff;
     }
 
     /**

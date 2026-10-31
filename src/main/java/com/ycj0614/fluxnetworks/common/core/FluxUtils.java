@@ -6,10 +6,12 @@ import java.util.UUID;
 
 import javax.annotation.Nullable;
 
+import net.minecraft.block.Block;
 import net.minecraft.block.material.MapColor;
 import net.minecraft.block.material.Material;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
@@ -100,28 +102,37 @@ public class FluxUtils {
 
     private static ItemStack plugStack, pointStack, storageStack, controllerStack;
 
+    /** 원작 FluxGuiStack: GUI_COLOR 태그가 있으면 열린 GUI의 네트워크 색으로 그린다 (FluxColorHandler.getItemColor) */
+    private static ItemStack guiColorStack(Block block) {
+        ItemStack stack = new ItemStack(block);
+        NBTTagCompound tag = new NBTTagCompound();
+        tag.setBoolean(GUI_COLOR, true);
+        stack.setTagCompound(tag);
+        return stack;
+    }
+
     /** 연결 종류별 GUI 표시용 아이템 (원작 FluxGuiStack). 그리기만 하므로 같은 인스턴스를 돌려준다 */
     @Nullable
     public static ItemStack getDisplayStack(ConnectionType type) {
         switch (type) {
             case PLUG:
                 if (plugStack == null) {
-                    plugStack = new ItemStack(RegistryBlocks.FLUX_PLUG);
+                    plugStack = guiColorStack(RegistryBlocks.FLUX_PLUG);
                 }
                 return plugStack;
             case POINT:
                 if (pointStack == null) {
-                    pointStack = new ItemStack(RegistryBlocks.FLUX_POINT);
+                    pointStack = guiColorStack(RegistryBlocks.FLUX_POINT);
                 }
                 return pointStack;
             case STORAGE:
                 if (storageStack == null) {
-                    storageStack = new ItemStack(RegistryBlocks.FLUX_STORAGE_1);
+                    storageStack = guiColorStack(RegistryBlocks.FLUX_STORAGE_1);
                 }
                 return storageStack;
             case CONTROLLER:
                 if (controllerStack == null) {
-                    controllerStack = new ItemStack(RegistryBlocks.FLUX_CONTROLLER);
+                    controllerStack = guiColorStack(RegistryBlocks.FLUX_CONTROLLER);
                 }
                 return controllerStack;
             default:

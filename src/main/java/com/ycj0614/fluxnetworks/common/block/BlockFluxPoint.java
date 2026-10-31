@@ -8,8 +8,10 @@ import com.ycj0614.fluxnetworks.common.tileentity.TileFluxPoint;
 public class BlockFluxPoint extends BlockFluxCore {
 
     public BlockFluxPoint() {
-        super("fluxpoint", "fluxpoint");
-        // TODO 3단계: 원작 경계 상자 (0.375 ~ 0.625)
+        super("fluxpoint");
+        setBlockBounds(0.375F, 0.375F, 0.375F, 0.625F, 0.625F, 0.625F);
+        setModelTexture(TEX_0, "flux_point_on", "flux_point_off");
+        setModelTexture(TEX_COLOUR, "flux_point_colour");
     }
 
     @Override

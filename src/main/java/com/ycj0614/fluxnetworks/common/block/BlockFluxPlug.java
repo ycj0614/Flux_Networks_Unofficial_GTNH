@@ -8,8 +8,10 @@ import com.ycj0614.fluxnetworks.common.tileentity.TileFluxPlug;
 public class BlockFluxPlug extends BlockFluxCore {
 
     public BlockFluxPlug() {
-        super("fluxplug", "fluxplug");
-        // TODO 3단계: 원작 경계 상자 (0.25 ~ 0.75)
+        super("fluxplug");
+        setBlockBounds(0.25F, 0.25F, 0.25F, 0.75F, 0.75F, 0.75F);
+        setModelTexture(TEX_0, "flux_plug_on", "flux_plug_off");
+        setModelTexture(TEX_COLOUR, "flux_plug_colour");
     }
 
     @Override

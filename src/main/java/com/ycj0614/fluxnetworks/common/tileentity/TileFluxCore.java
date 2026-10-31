@@ -1,5 +1,6 @@
 package com.ycj0614.fluxnetworks.common.tileentity;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.UUID;
 
@@ -183,8 +184,14 @@ public abstract class TileFluxCore extends TileEntity implements IFluxConnector,
         if (tag == null) {
             return;
         }
+        boolean wasConnected = connected;
+        int oldColor = color;
+        byte[] oldConnections = connections.clone();
         readCustomNBT(tag, NBTType.TILE_UPDATE);
-        if (worldObj != null) {
+        // 원작과 다름: 모양(켜짐·꺼짐, 색, 면 연결)이 바뀔 때만 청크를 다시 그린다.
+        // 스토리지는 4틱마다 에너지를 동기화하는데, 게이지는 TESR이 그리므로 다시 그릴 필요가 없다
+        if (worldObj != null
+            && (wasConnected != connected || oldColor != color || !Arrays.equals(oldConnections, connections))) {
             worldObj.markBlockRangeForRenderUpdate(xCoord, yCoord, zCoord, xCoord, yCoord, zCoord);
         }
     }

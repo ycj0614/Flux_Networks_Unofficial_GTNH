@@ -4,12 +4,15 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
+import net.minecraftforge.client.MinecraftForgeClient;
 
 import com.ycj0614.fluxnetworks.FluxNetworks;
 import com.ycj0614.fluxnetworks.api.gui.EnumFeedbackInfo;
@@ -18,14 +21,22 @@ import com.ycj0614.fluxnetworks.client.gui.GuiFluxAdminHome;
 import com.ycj0614.fluxnetworks.client.gui.GuiFluxConfiguratorHome;
 import com.ycj0614.fluxnetworks.client.gui.GuiFluxConnectorHome;
 import com.ycj0614.fluxnetworks.client.gui.basic.GuiFluxCore;
+import com.ycj0614.fluxnetworks.client.render.BlockFluxRenderer;
+import com.ycj0614.fluxnetworks.client.render.ItemFluxDeviceRenderer;
+import com.ycj0614.fluxnetworks.client.render.TileFluxStorageRenderer;
 import com.ycj0614.fluxnetworks.common.CommonProxy;
+import com.ycj0614.fluxnetworks.common.block.BlockFluxCore;
 import com.ycj0614.fluxnetworks.common.connection.FluxNetworkCache;
 import com.ycj0614.fluxnetworks.common.handler.GuiHandler;
 import com.ycj0614.fluxnetworks.common.item.ItemAdminConfigurator;
 import com.ycj0614.fluxnetworks.common.item.ItemConfigurator;
 import com.ycj0614.fluxnetworks.common.network.PacketColorCache;
+import com.ycj0614.fluxnetworks.common.registry.RegistryBlocks;
 import com.ycj0614.fluxnetworks.common.tileentity.TileFluxCore;
+import com.ycj0614.fluxnetworks.common.tileentity.TileFluxStorage;
 
+import cpw.mods.fml.client.registry.ClientRegistry;
+import cpw.mods.fml.client.registry.RenderingRegistry;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
@@ -51,8 +62,22 @@ public class ClientProxy extends CommonProxy {
         // super.preInit()이 this(= ClientProxy 인스턴스)를 FML 버스와 Forge 버스에 등록하므로
         // 이 클래스의 @SubscribeEvent 메서드도 이미 등록된다. 여기서 다시 등록하지 않는다.
         super.preInit(event);
-        // TODO 3단계: 원작의 ClientRegistry.bindTileEntitySpecialRenderer(TileFluxStorage.class, new
-        // TileFluxStorageRenderer()) 호출 — 플럭스 스토리지 에너지 표시 렌더러 등록
+        registerRenderers();
+    }
+
+    /**
+     * 원작 FluxColorHandler 등록(ColorHandlerEvent)과 모델 등록을 대신한다. 1.7.10에는 tintIndex가 없으므로
+     * 네트워크 색은 렌더러가 FluxColorHandler에서 받아 직접 입힌다 (구성기는 ItemConfigurator.getColorFromItemStack)
+     */
+    private void registerRenderers() {
+        BlockFluxCore.renderId = RenderingRegistry.getNextAvailableRenderId();
+        RenderingRegistry.registerBlockHandler(new BlockFluxRenderer(BlockFluxCore.renderId));
+        ClientRegistry.bindTileEntitySpecialRenderer(TileFluxStorage.class, new TileFluxStorageRenderer());
+        Block[] devices = { RegistryBlocks.FLUX_PLUG, RegistryBlocks.FLUX_POINT, RegistryBlocks.FLUX_STORAGE_1,
+            RegistryBlocks.FLUX_STORAGE_2, RegistryBlocks.FLUX_STORAGE_3, RegistryBlocks.FLUX_CONTROLLER };
+        for (Block block : devices) {
+            MinecraftForgeClient.registerItemRenderer(Item.getItemFromBlock(block), ItemFluxDeviceRenderer.INSTANCE);
+        }
     }
 
     @Override
@@ -68,10 +93,6 @@ public class ClientProxy extends CommonProxy {
         // 이 이벤트는 네티 스레드에서 올 수 있으므로 클라이언트 메인 스레드로 넘긴다
         scheduleClientTask(this::onServerStopped);
     }
-
-    // TODO 3단계: 원작의 registerBlockColor / registerItemColor(ColorHandlerEvent) — FLUX_CONTROLLER, FLUX_POINT, FLUX_PLUG,
-    // FLUX_STORAGE_1~3 블록·아이템과
-    // FLUX_CONFIGURATOR에 FluxColorHandler 색상 핸들러 등록 (1.7.10에는 ColorHandlerEvent가 없음. 블록 colorMultiplier 등으로 대체)
 
     @SubscribeEvent
     public void onClientTick(TickEvent.ClientTickEvent event) {

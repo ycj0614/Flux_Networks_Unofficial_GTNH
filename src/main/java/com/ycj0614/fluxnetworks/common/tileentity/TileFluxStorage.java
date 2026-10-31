@@ -12,7 +12,7 @@ import com.ycj0614.fluxnetworks.common.core.GTEnergy;
  * (IEnergyConnected를 구현하지 않음).
  * <p>
  * 원작의 OpenComputers getFluxInfo, TheOneProbe IBigPower는 GTNH 범위 밖이라 옮기지 않았다.
- * TODO 배치 R: 원작 TileFluxStorageRenderer(에너지 게이지)와 ItemFluxStorageRenderer
+ * 에너지 게이지는 TileFluxStorageRenderer(월드)와 ItemFluxDeviceRenderer(아이템)가 그린다.
  */
 public class TileFluxStorage extends TileFluxCore implements IFluxStorage {
 
