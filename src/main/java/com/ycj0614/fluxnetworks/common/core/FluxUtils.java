@@ -98,7 +98,7 @@ public class FluxUtils {
         return false;
     }
 
-    private static ItemStack plugStack, pointStack;
+    private static ItemStack plugStack, pointStack, storageStack;
 
     /** 연결 종류별 GUI 표시용 아이템 (원작 FluxGuiStack). 그리기만 하므로 같은 인스턴스를 돌려준다 */
     @Nullable
@@ -114,8 +114,13 @@ public class FluxUtils {
                     pointStack = new ItemStack(RegistryBlocks.FLUX_POINT);
                 }
                 return pointStack;
+            case STORAGE:
+                if (storageStack == null) {
+                    storageStack = new ItemStack(RegistryBlocks.FLUX_STORAGE_1);
+                }
+                return storageStack;
             default:
-                // TODO 3단계: 컨트롤러·스토리지 아이콘 (원작: FluxGuiStack.FLUX_CONTROLLER, FLUX_STORAGE_1)
+                // TODO 3단계: 컨트롤러 아이콘 (원작: FluxGuiStack.FLUX_CONTROLLER, 배치 O)
                 return null;
         }
     }

@@ -5,9 +5,8 @@ import com.ycj0614.fluxnetworks.api.tiles.IFluxConnector;
 
 import cpw.mods.fml.common.eventhandler.Event;
 
-// TODO 확인: 1.7.10 EventBus.register()는 이벤트 클래스를 인자 없는 생성자로 한 번 생성한다.
-// 1.12와 마찬가지로 EventSubscriptionTransformer가 기본 생성자를 자동으로 추가한다고 보고 원작 그대로 두었다.
-// 등록 시 로그에 NoSuchMethodException이 찍히면 각 클래스에 public 기본 생성자를 추가해야 한다.
+// 1.7.10 EventBus.register()는 이벤트 클래스를 인자 없는 생성자로 한 번 생성한다.
+// EventSubscriptionTransformer가 기본 생성자를 자동으로 추가하므로 원작 그대로 둔다 (2단계 멀티플레이 테스트에서 확인).
 public class FluxConnectionEvent extends Event {
 
     public final IFluxConnector flux;

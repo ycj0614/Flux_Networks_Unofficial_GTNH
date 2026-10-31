@@ -7,6 +7,7 @@ import com.ycj0614.fluxnetworks.FluxConfig;
 import com.ycj0614.fluxnetworks.api.tiles.IFluxConnector;
 import com.ycj0614.fluxnetworks.common.tileentity.TileFluxPlug;
 import com.ycj0614.fluxnetworks.common.tileentity.TileFluxPoint;
+import com.ycj0614.fluxnetworks.common.tileentity.TileFluxStorage;
 
 import cpw.mods.fml.common.registry.GameRegistry;
 import gregtech.api.interfaces.tileentity.IEnergyConnected;
@@ -23,7 +24,10 @@ public class TileEntityHandler {
     public static void registerTileEntity() {
         GameRegistry.registerTileEntity(TileFluxPlug.class, "fluxnetworks:FluxPlug");
         GameRegistry.registerTileEntity(TileFluxPoint.class, "fluxnetworks:FluxPoint");
-        // TODO 3단계: 원작의 FluxController, FluxStorage, HerculeanFluxStorage, GargantuanFluxStorage 타일 등록
+        GameRegistry.registerTileEntity(TileFluxStorage.class, "fluxnetworks:FluxStorage");
+        GameRegistry.registerTileEntity(TileFluxStorage.Herculean.class, "fluxnetworks:HerculeanFluxStorage");
+        GameRegistry.registerTileEntity(TileFluxStorage.Gargantuan.class, "fluxnetworks:GargantuanFluxStorage");
+        // TODO 3단계: 원작의 FluxController 타일 등록 (배치 O)
     }
 
     /**

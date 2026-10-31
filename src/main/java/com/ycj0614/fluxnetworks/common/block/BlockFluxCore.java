@@ -166,8 +166,7 @@ public abstract class BlockFluxCore extends Block {
 
     // ---- 파괴 ----
 
-    // TODO 확인: Forge 10.13.4.1614의 Block.removedByPlayer(World, EntityPlayer, int, int, int, boolean willHarvest) 시그니처
-    // (5인자 버전은 @Deprecated). ItemInWorldManager.removeBlock이 이 6인자 버전을 부르는지 확인
+    // Forge 10.13.4.1614의 6인자 removedByPlayer (5인자 버전은 @Deprecated). ItemInWorldManager.removeBlock이 호출한다 (게임에서 확인)
     @Override
     public boolean removedByPlayer(World world, EntityPlayer player, int x, int y, int z, boolean willHarvest) {
         if (world.isRemote) {

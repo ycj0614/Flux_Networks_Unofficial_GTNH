@@ -36,30 +36,48 @@ git -C ../reference/GT5-Unofficial sparse-checkout set src/main/java/gregtech/ap
 | 단계 | 배치 | 상태 |
 | --- | --- | --- |
 | 1단계 EU 전송 MVP | A API / B 진입점·설정·프록시 / C 네트워크 코어 / D 저장 데이터·FluxUtils / E 전송 핸들러 / F 타일 / G 블록·등록·디버그 명령 | 완료, 게임 테스트 통과 |
-| 2단계 GUI·패킷 | H 패킷 기반·SuperAdmin·동기화 패킷 / I 명령 패킷 / J 구성기·ItemBlock·색상 캐시 / K GUI 틀 / L GUI 화면 | 완료 (L은 게임 테스트 대기) |
-| 2단계 정리 | M `/fluxdebug` 삭제·TODO 정리·데디케이티드 서버 기동 확인 | 완료 (멀티플레이 접속 테스트 대기) |
-| 3단계 | 스토리지, 컨트롤러, 플럭스 블록, 청크 로딩, 원작 모양 렌더링, 네트워크 색상 | 대기 |
+| 2단계 GUI·패킷 | H 패킷 기반·SuperAdmin·동기화 패킷 / I 명령 패킷 / J 구성기·ItemBlock·색상 캐시 / K GUI 틀 / L GUI 화면 / M `/fluxdebug` 삭제·TODO 정리 | **완료 (마일스톤)**, 데디케이티드 서버 멀티플레이 테스트 통과 |
+| 3단계 | N 스토리지 / O 컨트롤러 / P 플럭스 아이템·블록 / Q 청크 로딩·일괄 편집 / R 원작 모양 렌더링·네트워크 색상 | N 완료·게임 테스트 통과, 다음은 **O** |
 | 4단계 | 컨트롤러 무선 충전 (GT 전기 아이템) | 대기 |
 | 5단계 | GT 레시피, NEI, WAILA, 배포 | 대기 |
 
 GUI는 **원작 GUI를 그대로 옮긴다** (ModularUI 쓰지 않음).
 
-### 남은 2단계 배치
+### 3단계 배치
 
-- **J**: 커넥터 `ItemBlock`(이름·툴팁, 네트워크 이름과 EU 설정 표시), 구성기(`ItemConfigurator`), 관리자 구성기, `GuiHandler`,
-  구성기 패킷 `PacketConfiguratorSettings`(ID 17), `PacketSetConfiguratorNetwork`(ID 18),
-  색상 캐시 패킷 `PacketColorRequest`(ID 7), `PacketColorCache`(ID 8), 원작 `client/FluxColorHandler`의 네트워크 이름·색 캐시 부분.
-  코드에 남은 `// TODO 배치 J` 처리 (네트워크 편집 시 색상 캐시 전송 포함)
-- **K**: GUI 틀. `GuiFluxCore`, 탭·팝업 구조(`GuiTabCore`, `GuiTabPages`, `GuiPopUpHost`, `GuiPopCore`), `GuiDraw`, 버튼 9종, `GuiTextField`.
-  `GlStateManager` → `GL11`, `BufferBuilder` → `Tessellator`. `// TODO 배치 K`(권한·SuperAdmin 변경을 열린 GUI에 전달) 처리
-- **L**: GUI 화면. 커넥터 홈(전압 티어 선택·암페어 입력, 플러그 최대 입력 티어), 선택, 생성, 설정, 멤버, 연결, 통계(`LineChart`), 팝업.
-  무선 탭은 4단계라 숨긴다
-- **M**: `/fluxdebug` 명령과 블록 우클릭 정보 출력 삭제(GUI로 대체), 남은 `// TODO 2단계` 정리, 데디케이티드 서버 테스트
+배치마다 코드에 남은 `// TODO 3단계:` 중 해당 항목을 검색해서 처리한다. 각 배치 끝에 그 배치의 TODO가 남지 않았는지 확인한다.
+
+- **N 스토리지 (완료)**: 원작 `TileFluxStorage`(기본·`Herculean`·`Gargantuan` 3종), `FluxStorageHandler`, `BlockFluxStorage`, `IFluxStorage`.
+  - 등록 이름(월드 저장에 기록됨, 정한 뒤 변경 금지): 블록 `fluxstorage`, `herculeanfluxstorage`, `gargantuanfluxstorage` /
+    타일 `fluxnetworks:FluxStorage`, `fluxnetworks:HerculeanFluxStorage`, `fluxnetworks:GargantuanFluxStorage`
+  - 용량·전송량은 이미 있는 `FluxConfig.basicCapacity` 등(EU, EU/t)을 쓴다. 에너지는 GT 기계와 직접 주고받지 않는다 (원작처럼 네트워크 버퍼 전용, `IEnergyConnected` 구현 안 함)
+  - 우선순위 `PRI_DIFF`·`PRI_UPPER`, 4틱마다 에너지 동기화, 부숴도 아이템 NBT(`"energy"`)에 에너지 보존
+  - `ItemFluxConnector` 툴팁 에너지 표시, `FluxUtils` 아이콘의 스토리지 부분, `TileEntityHandler`·`RegistryBlocks` 등록, GUI 홈 화면의 스토리지 표시 확인
+  - 원작 모양 렌더링(`TileFluxStorageRenderer` 게이지)은 R에서 한다. N에서는 단순 아이콘
+  - 결과: `FluxStorageHandler`(NBT 키 상수 `NBT_ENERGY`), `TileFluxStorage`(+`Herculean`/`Gargantuan` 내부 클래스), `BlockFluxStorage`(`getMaxStorage()`),
+    텍스처 `fluxstorage1~3_on/off.png`(원작 `model/tierN`, `tierN_off` 복사). `IFluxStorage`가 `IFluxPlug`·`IFluxPoint`를 상속하므로
+    EU getter는 쓰이지 않는 고정값(MAX 티어, 1A)을 돌려준다 (`// 원작과 다름`). 아이템 툴팁은 "저장량 / 용량"
+- **O 컨트롤러**: 원작 `TileFluxController`, `BlockFluxController`, `FluxControllerHandler`.
+  - 등록 이름: 블록 `fluxcontroller` / 타일 `fluxnetworks:FluxController`
+  - 네트워크당 컨트롤러 1개 (원작 `FluxUtils`·`PacketTileHandler`의 `HAS_CONTROLLER` 피드백). 같은 검사를 구성기 붙여넣기에도 적용
+  - 핸들러는 요청량 0인 껍데기만 둔다. 플레이어 충전(`chargeAllItems`, 바우블)은 `// TODO 4단계:`로 남긴다. GUI 무선 탭은 계속 숨긴다
+- **P 플럭스 아이템·블록**: 원작 `ItemFlux`(Flux), `ItemCore`(FluxCore), `BlockCore`(FluxBlock, 바위 재질), `EntityFireItem`,
+  `CommonProxy`의 흑요석 좌클릭 제작(`enableFluxRecipe`)과 `onEntyAdded`(`enableOldRecipe`).
+  - 등록 이름: 아이템 `flux`, `fluxcore` / 블록 `fluxblock`, 엔티티 `"Flux"`(ID 0)
+  - 일반 제작대 레시피와 GT 레시피는 5단계. 이 배치는 원작의 월드 안 제작 방식만
+- **Q 청크 로딩·일괄 편집**: 원작 `FluxChunkManager`, `ForgeChunkManager` 콜백 등록(`CommonProxy`), `FluxNetworkData`의 청크 목록 저장,
+  `PacketTileHandler`의 `forceChunk/releaseChunk`, `TileFluxCore.invalidate`의 해제, `PacketBatchEditing` `editions[5]`, 구성기 홈의 청크 로딩 스위치.
+  - `ChunkPos` 대신 `ChunkCoordIntPair`. `FluxConfig.enableChunkLoading`이 꺼져 있으면 모두 거부
+  - 같은 배치에서 연결 탭의 티어·암페어 일괄 편집(`GuiPopConnectionEdit`, `PacketBatchEditing`, `FluxLiteConnector`에 EU 설정 추가. 원작에 없는 기능)
+- **R 원작 모양 렌더링·네트워크 색상**: ISBRH(`ISimpleBlockRenderingHandler`)로 원작 모양(플러그 0.25~0.75, 포인트 0.375~0.625, 컨트롤러·스토리지)과
+  경계 상자, 원작 `BlockSidedConnection`의 면 연결 표시, 스토리지 TESR 에너지 게이지와 아이템 렌더러(`IItemRenderer`),
+  네트워크 색 입히기(블록 `colorMultiplier`, 구성기 2레이어 아이콘. 원작 `FluxColorHandler`의 색 부분, `ClientProxy` TODO).
+  - 범위가 크다. 코드를 쓰기 전에 파일 목록과 순서를 보여주고 승인을 받는다
 
 ## 작업 방식
 
 - 배치 하나를 끝내면 `./gradlew build` 성공을 확인하고 바뀐 점을 요약한다. 커밋과 게임 안 테스트는 사용자가 한다
-- 범위가 큰 배치(K, L)는 코드를 쓰기 전에 파일 목록과 순서를 계획으로 먼저 보여주고 승인을 받는다
+- 범위가 큰 배치(K, L, N, R)는 코드를 쓰기 전에 파일 목록과 순서를 계획으로 먼저 보여주고 승인을 받는다
 - 배치 범위 밖 기능은 지우지 말고 `// TODO <단계 또는 배치>:` 주석으로 남긴다 (원작 동작 한 줄 요약 포함)
 - 끝나면 사용자가 게임에서 확인할 절차를 짧게 적어준다
 
@@ -84,12 +102,14 @@ GUI는 **원작 GUI를 그대로 옮긴다** (ModularUI 쓰지 않음).
    출력 전압이 GT 기계보다 높으면 기계가 폭발한다 (GT 규칙, 의도된 동작)
 3. **플러그**: `FluxPlugHandler.injectEnergyUnits`가 암페어 단위로 받는다. 최대 입력 티어 초과 전압은 0 반환(폭발 없음). `side`가 `UNKNOWN`이어도 받는다
 4. **전송 사이클**: `FluxNetworkServer.onEndServerTick`과 우선순위 정렬은 원작 알고리즘 그대로. 수정 금지
-5. **타일 구조**: `TileFluxCore` → `TileFluxConnector`(GT `IEnergyConnected` 구현, 색 -1) → `TileFluxPlug` / `TileFluxPoint`
+5. **타일 구조**: `TileFluxCore` → `TileFluxConnector`(GT `IEnergyConnected` 구현, 색 -1) → `TileFluxPlug` / `TileFluxPoint`.
+   `TileFluxStorage`는 `TileFluxCore`를 바로 상속한다 (GT와 연결하지 않음)
 6. **EU 설정**: 플러그 `maxInputTier`(NBT `"mt"`), 포인트 `outputTier`(`"ot"`), `outputAmperage`(`"oa"`). 티어 0(ULV)~14(MAX).
    값을 바꿀 때는 반드시 setter(`setMaxInputTier`, `setOutputTier`, `setOutputAmperage`)를 쓴다 (보정과 동기화 포함)
 7. **GT 케이블 갱신**: `TileFluxConnector.notifyGTCables()`가 인접 GT 케이블 좌표로 `GregTechAPI.causeCableUpdate`를 호출한다.
    첫 틱, 25틱 뒤, `invalidate` 때. GT 케이블 연결을 강제로 끊었다 잇는 방식은 쓰지 않는다
-8. **등록 이름 (월드 저장에 기록됨, 변경 금지)**: 블록 `fluxplug`, `fluxpoint` / 타일 `fluxnetworks:FluxPlug`, `fluxnetworks:FluxPoint`
+8. **등록 이름 (월드 저장에 기록됨, 변경 금지)**: 블록 `fluxplug`, `fluxpoint`, `fluxstorage`, `herculeanfluxstorage`, `gargantuanfluxstorage` /
+   타일 `fluxnetworks:FluxPlug`, `fluxnetworks:FluxPoint`, `fluxnetworks:FluxStorage`, `fluxnetworks:HerculeanFluxStorage`, `fluxnetworks:GargantuanFluxStorage`
 9. **아이템 NBT**: 장치 데이터는 `FluxUtils.FLUX_DATA` 하위 태그, 키는 `TileFluxCore.NBT_CUSTOM_NAME` 등 상수. 설정 복사는 `FluxConfigurationType.copyAll/pasteAll`
 10. **SuperAdmin**: `IExtendedEntityProperties`(`SuperAdminData`). 원작처럼 죽으면 해제
 
