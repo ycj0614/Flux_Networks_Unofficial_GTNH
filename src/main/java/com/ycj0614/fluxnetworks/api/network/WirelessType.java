@@ -12,7 +12,7 @@ public enum WirelessType {
     LEFT_HAND(FluxTranslate.LEFT_HAND),
     HOT_BAR(FluxTranslate.HOT_BAR),
     ARMOR_SLOT(FluxTranslate.ARMOR),
-    BAUBLES(FluxTranslate.BAUBLES), // Baubles 미지원, 순서 유지용
+    BAUBLES(FluxTranslate.BAUBLES), // TODO 배치 V: 바우블 슬롯 충전
     INVENTORY(FluxTranslate.INVENTORY);
 
     private final Translation typeName;

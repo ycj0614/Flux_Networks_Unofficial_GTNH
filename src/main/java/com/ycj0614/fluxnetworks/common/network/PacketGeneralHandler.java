@@ -310,7 +310,7 @@ public class PacketGeneralHandler {
         return feedback(EnumFeedbackInfo.INVALID_USER);
     }
 
-    // ---------------------------------------------------------------- 무선 (4단계, GUI에서 숨김)
+    // ---------------------------------------------------------------- 무선
 
     public static NBTTagCompound getChangeWirelessPacket(int networkID, int wirelessMode) {
         NBTTagCompound tag = new NBTTagCompound();

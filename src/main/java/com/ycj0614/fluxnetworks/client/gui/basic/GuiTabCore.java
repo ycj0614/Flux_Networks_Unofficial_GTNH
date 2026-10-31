@@ -26,6 +26,7 @@ import com.ycj0614.fluxnetworks.client.gui.tab.GuiTabMembers;
 import com.ycj0614.fluxnetworks.client.gui.tab.GuiTabSelection;
 import com.ycj0614.fluxnetworks.client.gui.tab.GuiTabSettings;
 import com.ycj0614.fluxnetworks.client.gui.tab.GuiTabStatistics;
+import com.ycj0614.fluxnetworks.client.gui.tab.GuiTabWireless;
 import com.ycj0614.fluxnetworks.common.item.ItemAdminConfigurator;
 import com.ycj0614.fluxnetworks.common.item.ItemConfigurator;
 import com.ycj0614.fluxnetworks.common.tileentity.TileFluxCore;
@@ -58,16 +59,8 @@ public abstract class GuiTabCore extends GuiFluxCore {
 
     public abstract EnumNavigationTabs getNavigationTab();
 
-    /** 원작과 다름: 무선 탭(4단계)은 뺀다 */
     public void setDefaultTabs() {
-        List<EnumNavigationTabs> tabs = new ArrayList<>();
-        for (EnumNavigationTabs tab : EnumNavigationTabs.values()) {
-            // TODO 4단계: 무선 충전을 만들면 TAB_WIRELESS를 다시 넣는다 (원작: EnumNavigationTabs.values() 전부)
-            if (tab != EnumNavigationTabs.TAB_WIRELESS) {
-                tabs.add(tab);
-            }
-        }
-        this.navigationTabs = tabs.toArray(new EnumNavigationTabs[0]);
+        this.navigationTabs = EnumNavigationTabs.values();
     }
 
     public void setNavigationTabs(EnumNavigationTabs[] navigationTabs) {
@@ -111,7 +104,7 @@ public abstract class GuiTabCore extends GuiFluxCore {
                 button = new NavigationButton(148, -16, tab);
             }
             // 원작과 다름: 원작은 navigationButtons.get(currentTab.ordinal())로 찾았다.
-            // 무선 탭을 빼면 순서가 밀리므로 탭 값으로 찾는다
+            // 탭 배열이 바뀌어도 맞도록 탭 값으로 찾는다
             if (tab == currentTab) {
                 button.setMain();
             }
@@ -149,7 +142,7 @@ public abstract class GuiTabCore extends GuiFluxCore {
                 }
                 break;
             case TAB_WIRELESS:
-                // TODO 4단계: GuiTabWireless
+                screen = new GuiTabWireless(player, connector);
                 break;
             case TAB_CONNECTION:
                 screen = new GuiTabConnections(player, connector);

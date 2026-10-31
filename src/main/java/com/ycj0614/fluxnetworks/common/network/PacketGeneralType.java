@@ -15,7 +15,7 @@ public enum PacketGeneralType {
      * REMOVE_MEMBER(PacketGeneralHandler::handleRemoveMemberPacket),
      */
     CHANGE_PERMISSION(PacketGeneralHandler::handleChangePermissionPacket),
-    /** 4단계(무선) 기능. 패킷만 옮기고 GUI에서는 숨긴다 */
+    /** 무선 충전 설정 (GuiTabWireless) */
     CHANGE_WIRELESS(PacketGeneralHandler::handleChangeWirelessPacket);
 
     private static final PacketGeneralType[] VALUES = values();

@@ -12,9 +12,9 @@ import com.ycj0614.fluxnetworks.client.gui.basic.GuiFluxCore;
 
 /**
  * 무선 충전 탭의 인벤토리 칸 버튼.
- * 원작과 다름: 원작은 GuiTabWireless를 호스트로 받고 host.settings를 읽었다. 무선 탭은 4단계라
- * 호스트는 GuiFluxCore로, 켜짐 상태 배열은 생성자에서 따로 받는다.
- * TODO 4단계: GuiTabWireless를 만들면 그 settings 배열을 넘긴다 (원작: settings[chargeType.ordinal()]가 켜져 있으면 아래 칸 텍스처)
+ * 원작과 다름: 원작은 GuiTabWireless를 호스트로 받고 host.settings를 읽었다. 여기서는 GuiTabWireless가
+ * 자기 settings 배열을 생성자로 넘긴다 (settings[chargeType.ordinal()]가 켜져 있으면 아래 칸 텍스처).
+ * 누를 수 없는 칸(clickable == false)은 회색으로 그린다 (원작과 다름).
  */
 public class InventoryButton extends GuiButtonCore {
 
@@ -36,7 +36,7 @@ public class InventoryButton extends GuiButtonCore {
 
     @Override
     public void drawButton(Minecraft mc, int mouseX, int mouseY, int guiLeft, int guiTop) {
-        int colour = host.network.getSetting(NetworkSettings.NETWORK_COLOR);
+        int colour = clickable ? host.network.getSetting(NetworkSettings.NETWORK_COLOR) : 0x606060;
         GL11.glColor4f((colour >> 16 & 255) / 255.0F, (colour >> 8 & 255) / 255.0F, (colour & 255) / 255.0F, 1.0f);
         boolean hover = isMouseHovered(mc, mouseX - guiLeft, mouseY - guiTop);
         mc.getTextureManager()

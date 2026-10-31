@@ -7,7 +7,7 @@ public enum EnumNavigationTabs {
 
     TAB_HOME(FluxTranslate.TAB_HOME),
     TAB_SELECTION(FluxTranslate.TAB_SELECTION),
-    TAB_WIRELESS(FluxTranslate.TAB_WIRELESS), // 4단계: GUI에서 숨김
+    TAB_WIRELESS(FluxTranslate.TAB_WIRELESS),
     TAB_CONNECTION(FluxTranslate.TAB_CONNECTION),
     TAB_STATISTICS(FluxTranslate.TAB_STATISTICS),
     TAB_MEMBER(FluxTranslate.TAB_MEMBER),

@@ -38,7 +38,7 @@ git -C ../reference/GT5-Unofficial sparse-checkout set src/main/java/gregtech/ap
 | 1단계 EU 전송 MVP | A API / B 진입점·설정·프록시 / C 네트워크 코어 / D 저장 데이터·FluxUtils / E 전송 핸들러 / F 타일 / G 블록·등록·디버그 명령 | 완료, 게임 테스트 통과 |
 | 2단계 GUI·패킷 | H 패킷 기반·SuperAdmin·동기화 패킷 / I 명령 패킷 / J 구성기·ItemBlock·색상 캐시 / K GUI 틀 / L GUI 화면 / M `/fluxdebug` 삭제·TODO 정리 | **완료 (마일스톤)**, 데디케이티드 서버 멀티플레이 테스트 통과 |
 | 3단계 | N 스토리지 / O 컨트롤러 / P 플럭스 아이템·블록 / Q 청크 로딩·일괄 편집 / R 원작 모양 렌더링·네트워크 색상 | 완료, 게임 테스트 통과 |
-| 4단계 컨트롤러 무선 충전 | S 아이템 충전 헬퍼 / T 충전 핸들러 / U 무선 GUI 탭 / V 바우블 | S·T 완료, **다음은 U** |
+| 4단계 컨트롤러 무선 충전 | S 아이템 충전 헬퍼 / T 충전 핸들러 / U 무선 GUI 탭 / V 바우블 | S·T·U 완료, **다음은 V** |
 | 5단계 | GT 레시피, NEI, WAILA, 배포 | 대기 |
 
 GUI는 **원작 GUI를 그대로 옮긴다** (ModularUI 쓰지 않음).
@@ -95,7 +95,7 @@ GUI는 **원작 GUI를 그대로 옮긴다** (ModularUI 쓰지 않음).
 ### 4단계 배치
 
 컨트롤러가 네트워크 에너지로 멤버 플레이어의 전기 아이템을 충전한다. 원작 `FluxControllerHandler`, `GuiTabWireless`, `WirelessType`.
-코드에 남은 `// TODO 4단계:` (`GuiTabCore` 2곳, `InventoryButton`)와 `// TODO 배치 V:`(`FluxControllerHandler` 클래스 주석)를 배치마다 처리한다.
+코드에 남은 `// TODO 배치 V:`(`FluxControllerHandler` 클래스 주석, `GuiTabWireless` 바우블 버튼, `WirelessType.BAUBLES`)를 배치마다 처리한다.
 이미 있는 것: `WirelessType`, `NETWORK_WIRELESS` 설정과 저장(`wirelessMode`), `PacketGeneralType.CHANGE_WIRELESS`(편집 권한 확인), 번역 키 `tab.wireless`·`flux.wireless`·`slot.*`, `InventoryButton`.
 
 **IC2 아이템 API 예외 (S에서 결정, 승인됨)**: GTNH의 전기 아이템(GT 배터리·도구·전기 갑옷, IC2·GT++ 아이템)은 모두
@@ -124,6 +124,9 @@ EU이므로 "IC2 에너지 금지"의 예외로 **아이템 충전에 한해** `
 - **U 무선 GUI 탭**: 원작 `GuiTabWireless`를 그대로 옮기고 `GuiTabCore`의 숨김을 푼다. `InventoryButton`에 탭의 `settings` 배열을 넘긴다.
   왼손 버튼은 1.7.10에 없으므로 숨기거나 누를 수 없게 하고 `// 원작과 다름`. 적용 비트 계산과 `CHANGE_WIRELESS` 패킷은 원작 그대로.
   바우블 버튼은 V 전까지 바우블 모드가 없으면 누를 수 없게 둔다
+  - 결과 (완료): `client/gui/tab/GuiTabWireless`(원작 배치·적용 비트·`CHANGE_WIRELESS` 그대로). `GuiTabCore.setDefaultTabs`는 원작처럼 모든 탭.
+    왼손 칸은 넣지 않는다(`// 원작과 다름`, 비트는 서버 값을 그대로 돌려보냄). 바우블 칸은 `clickable = false`(`// TODO 배치 V:`).
+    `InventoryButton`은 생성자로 탭의 `settings` 배열을 받고, 누를 수 없는 칸은 회색(0x606060)으로 그린다
 - **V 바우블**: GTNH의 Baubles(Baubles-Expanded) API를 `compileOnly`로 추가하고(GTNH 2.9.0 매니페스트의 버전 사용), 모드가 있을 때만
   `BaublesApi.getBaubles(player)`(`IInventory`) 슬롯을 충전한다. 모드 확인은 `Loader.isModLoaded("Baubles")`로 하고 바우블 클래스는 별도 클래스에서만 import한다(없을 때 `NoClassDefFoundError` 방지)
 
