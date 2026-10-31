@@ -38,7 +38,7 @@ git -C ../reference/GT5-Unofficial sparse-checkout set src/main/java/gregtech/ap
 | 1단계 EU 전송 MVP | A API / B 진입점·설정·프록시 / C 네트워크 코어 / D 저장 데이터·FluxUtils / E 전송 핸들러 / F 타일 / G 블록·등록·디버그 명령 | 완료, 게임 테스트 통과 |
 | 2단계 GUI·패킷 | H 패킷 기반·SuperAdmin·동기화 패킷 / I 명령 패킷 / J 구성기·ItemBlock·색상 캐시 / K GUI 틀 / L GUI 화면 / M `/fluxdebug` 삭제·TODO 정리 | **완료 (마일스톤)**, 데디케이티드 서버 멀티플레이 테스트 통과 |
 | 3단계 | N 스토리지 / O 컨트롤러 / P 플럭스 아이템·블록 / Q 청크 로딩·일괄 편집 / R 원작 모양 렌더링·네트워크 색상 | 완료, 게임 테스트 통과 |
-| 4단계 컨트롤러 무선 충전 | S 아이템 충전 헬퍼 / T 충전 핸들러 / U 무선 GUI 탭 / V 바우블 | **다음은 S** |
+| 4단계 컨트롤러 무선 충전 | S 아이템 충전 헬퍼 / T 충전 핸들러 / U 무선 GUI 탭 / V 바우블 | S·T 완료, **다음은 U** |
 | 5단계 | GT 레시피, NEI, WAILA, 배포 | 대기 |
 
 GUI는 **원작 GUI를 그대로 옮긴다** (ModularUI 쓰지 않음).
@@ -95,19 +95,21 @@ GUI는 **원작 GUI를 그대로 옮긴다** (ModularUI 쓰지 않음).
 ### 4단계 배치
 
 컨트롤러가 네트워크 에너지로 멤버 플레이어의 전기 아이템을 충전한다. 원작 `FluxControllerHandler`, `GuiTabWireless`, `WirelessType`.
-코드에 남은 `// TODO 4단계:` (`FluxControllerHandler` 클래스 주석, `GuiTabCore` 2곳, `InventoryButton`)를 배치마다 처리한다.
+코드에 남은 `// TODO 4단계:` (`GuiTabCore` 2곳, `InventoryButton`)와 `// TODO 배치 V:`(`FluxControllerHandler` 클래스 주석)를 배치마다 처리한다.
 이미 있는 것: `WirelessType`, `NETWORK_WIRELESS` 설정과 저장(`wirelessMode`), `PacketGeneralType.CHANGE_WIRELESS`(편집 권한 확인), 번역 키 `tab.wireless`·`flux.wireless`·`slot.*`, `InventoryButton`.
 
-**S를 시작하기 전에 사용자 승인을 받을 것 (금지 사항과 충돌)**: GTNH의 전기 아이템(GT 배터리·도구·전기 갑옷, IC2·GT++ 아이템)은 모두
+**IC2 아이템 API 예외 (S에서 결정, 승인됨)**: GTNH의 전기 아이템(GT 배터리·도구·전기 갑옷, IC2·GT++ 아이템)은 모두
 IC2 `IElectricItem` 기반이고, GT5U도 `GTModHandler.chargeElectricItem` → `ic2.api.item.ElectricItem.manager.charge`로 충전한다.
-EU이므로 "IC2 에너지 금지"의 예외로 **아이템 충전에 한해** 다음 중 하나를 허용할지 정한다.
-- (권장) `ic2.api.item.ElectricItem.manager.charge/getCharge`와 `IElectricItem`을 헬퍼 한 곳에서만 직접 쓴다. GT5U 의존성에 IC2 API가 이미 딸려 온다
-- `GTModHandler.chargeElectricItem`만 쓴다. 반환값에 이상한 보정(`rCharge * 4 > aTier ? aTier : 0`)이 있고 `int`라 큰 값을 나눠 불러야 한다
+EU이므로 "IC2 에너지 금지"의 예외로 **아이템 충전에 한해** `ic2.api.item.ElectricItem.manager.charge/getCharge`와 `IElectricItem`을
+`common/core/ItemEnergy` 한 곳에서만 직접 쓴다 (GT5U 의존성에 IC2 API가 딸려 옴). `GTModHandler.chargeElectricItem`은 반환값 보정과 `int` 때문에 쓰지 않는다.
 
 - **S 아이템 충전 헬퍼**: 원작 `IItemEnergyHandler`/`ItemEnergyHandler` 대신 `common/core/ItemEnergy`(가칭) 하나.
   `canCharge(stack)`, `charge(stack, long eu, boolean simulate)` → 실제로 넣은 EU. `int` 범위로 잘라 부르고, 아이템 티어 제한은 무시하되(`Integer.MAX_VALUE`)
   아이템 전송 한도는 지킨다. 원작은 4틱마다 충전하므로 한 번에 "한도 × 4"까지 넣는 보정을 검토한다(배치에서 결정해 기록).
   `isElectricItem`이 아닌 아이템(RF 아이템 등)은 무시
+  - 결과 (완료): `ItemEnergy.canCharge(stack)`(전기 아이템이고 가득 차지 않음), `ItemEnergy.charge(stack, eu, simulate)` → 넣은 EU(`long`, 소수점 버림).
+    한 번에 `getTransferLimit × CHARGE_INTERVAL(4)`까지 넣는다(틱당 전송 한도, `// 원작과 다름`). `manager.charge(stack, 양, Integer.MAX_VALUE, true, simulate)`로
+    티어는 무시하고 한도는 직접 계산. `ElectricItem.manager`가 `ISpecialElectricItem`을 처리하는 게이트웨이라 따로 나누지 않는다
 - **T 충전 핸들러**: `FluxControllerHandler`를 원작 알고리즘대로 옮긴다 (`onCycleStart` 타이머·`demand`, `sendToConsumers`, `onCycleEnd` `timer = ++timer & 0x1f`, `reset`).
   - 원작 `sendToConsumers(energy, simulate)`가 현재 `BasicPointHandler.sendToConsumers(long)` 구조와 다르다. 전송 사이클(확정 설계 4)은 바꾸지 말고 핸들러 안에서 맞춘다
   - 정적 `CHARGING_PLAYERS`는 `HashSet`(fastutil 금지). `EntityPlayerMP` 대신 UUID로 두거나, 로그아웃·서버 종료 때 비운다(원작은 죽은 플레이어 참조가 남을 수 있음, `// 원작과 다름`)
@@ -115,6 +117,10 @@ EU이므로 "IC2 에너지 금지"의 예외로 **아이템 충전에 한해** �
   - 슬롯: 오른손 = `inventory.getCurrentItem()`, 핫바 0~8(든 아이템 제외), 갑옷 `armorInventory`. **1.7.10에는 왼손(오프핸드)이 없다** → `LEFT_HAND`는 무시
   - 충전한 아이템은 `inventoryContainer.detectAndSendChanges()`가 동기화하는지 게임에서 확인
   - 확인 방법: `/fluxdebug`가 없으므로 GUI 통계 탭의 컨트롤러 전송량과 아이템 충전 표시로 본다
+  - 결과 (완료): `FluxControllerHandler`가 원작 타이머 그대로 동작한다(`timer == 0` 대상 갱신, `& 3 == 2` 시뮬레이션 demand, `& 3 == 0` 실제 충전).
+    `sendToConsumers`에서 `min(버퍼, getLogicLimit())`로 자른다(원작은 `BasicPointHandler`에서 자름). `WirelessHandler` 대신 슬롯 그룹별 루프(오른손 → 핫바(든 아이템 제외) → 갑옷).
+    `CHARGING_PLAYERS`는 `HashSet<UUID>`(`getGameProfile().getId()`), 핸들러는 `EntityPlayerMP` 목록을 32틱마다 다시 만들고 `reset` 때 비운다.
+    `CommonProxy.onServerStopped`에서 `clearChargingPlayers()`. 바우블은 `// TODO 배치 V:`. U 전에는 무선을 켤 GUI가 없어 게임 확인은 U와 함께 한다
 - **U 무선 GUI 탭**: 원작 `GuiTabWireless`를 그대로 옮기고 `GuiTabCore`의 숨김을 푼다. `InventoryButton`에 탭의 `settings` 배열을 넘긴다.
   왼손 버튼은 1.7.10에 없으므로 숨기거나 누를 수 없게 하고 `// 원작과 다름`. 적용 비트 계산과 `CHANGE_WIRELESS` 패킷은 원작 그대로.
   바우블 버튼은 V 전까지 바우블 모드가 없으면 누를 수 없게 둔다
@@ -135,7 +141,7 @@ EU이므로 "IC2 에너지 금지"의 예외로 **아이템 충전에 한해** �
 - `net.minecraftforge.fml.*` 금지 → `cpw.mods.fml.*`
 - `it.unimi.dsi.fastutil.*`, `org.apache.commons.io.*` 금지
 - Java 9 이상 API 금지 (`List.of`, `Map.of`, `String.isBlank`, `Optional.isEmpty` 등)
-- `EnergyType`, RF·FE·IC2 에너지 코드 금지 (4단계 아이템 충전의 예외는 S 시작 때 결정). GT 쪽은 `IEnergyConnected`, `GTValues`(→ `GTEnergy` 헬퍼), `GregTechAPI.causeCableUpdate`, `BaseMetaPipeEntity`만 쓴다
+- `EnergyType`, RF·FE·IC2 에너지 코드 금지 (예외: 아이템 충전용 IC2 아이템 API는 `ItemEnergy`에서만). GT 쪽은 `IEnergyConnected`, `GTValues`(→ `GTEnergy` 헬퍼), `GregTechAPI.causeCableUpdate`, `BaseMetaPipeEntity`만 쓴다
 - `IEnergyConnected.Util.emitEnergyToNetwork` 금지 (IC2·RF로도 보내고 송신자 조건이 맞지 않음)
 
 자주 쓰는 변환: `world/pos` → `worldObj/xCoord,yCoord,zCoord`, `update()` → `updateEntity()`,

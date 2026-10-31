@@ -11,7 +11,7 @@ import com.ycj0614.fluxnetworks.common.core.GTEnergy;
  * GT 기계·케이블과 직접 연결하지 않는다 (IEnergyConnected를 구현하지 않음).
  * <p>
  * 원작의 OpenComputers getPeripheralName("flux_controller")은 GTNH 범위 밖이라 옮기지 않았다.
- * 무선 충전은 4단계 (FluxControllerHandler 참고).
+ * 무선 충전은 FluxControllerHandler가 한다.
  */
 public class TileFluxController extends TileFluxCore implements IFluxController {
 

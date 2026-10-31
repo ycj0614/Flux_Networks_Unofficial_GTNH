@@ -32,6 +32,7 @@ import com.ycj0614.fluxnetworks.common.capabilities.SuperAdminData;
 import com.ycj0614.fluxnetworks.common.capabilities.SuperAdminHandler;
 import com.ycj0614.fluxnetworks.common.connection.FluxNetworkCache;
 import com.ycj0614.fluxnetworks.common.connection.FluxNetworkInvalid;
+import com.ycj0614.fluxnetworks.common.connection.transfer.FluxControllerHandler;
 import com.ycj0614.fluxnetworks.common.core.EntityFireItem;
 import com.ycj0614.fluxnetworks.common.data.FluxChunkManager;
 import com.ycj0614.fluxnetworks.common.event.FluxConnectionEvent;
@@ -101,6 +102,7 @@ public class CommonProxy {
     public void onServerStopped() {
         FluxNetworkCache.instance.clearNetworks();
         FluxChunkManager.clear();
+        FluxControllerHandler.clearChargingPlayers();
         serverTasks.clear();
     }
 
