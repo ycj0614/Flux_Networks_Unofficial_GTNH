@@ -39,7 +39,7 @@ git -C ../reference/GT5-Unofficial sparse-checkout set src/main/java/gregtech/ap
 | 2단계 GUI·패킷 | H 패킷 기반·SuperAdmin·동기화 패킷 / I 명령 패킷 / J 구성기·ItemBlock·색상 캐시 / K GUI 틀 / L GUI 화면 / M `/fluxdebug` 삭제·TODO 정리 | **완료 (마일스톤)**, 데디케이티드 서버 멀티플레이 테스트 통과 |
 | 3단계 | N 스토리지 / O 컨트롤러 / P 플럭스 아이템·블록 / Q 청크 로딩·일괄 편집 / R 원작 모양 렌더링·네트워크 색상 | 완료, 게임 테스트 통과 |
 | 4단계 컨트롤러 무선 충전 | S 아이템 충전 헬퍼 / T 충전 핸들러 / U 무선 GUI 탭 / V 바우블 | 완료, 게임 테스트 통과 |
-| 5단계 마무리·연동 | W 레시피 / X NEI / Y WAILA / Z 배포 | W 완료(게임 테스트 대기), **다음은 X** |
+| 5단계 마무리·연동 | W 레시피 / X NEI / Y WAILA / Z 배포 | W 완료·게임 테스트 통과, X 완료(게임 테스트 대기), Y 완료(게임 테스트 대기), **다음은 Z** |
 
 GUI는 **원작 GUI를 그대로 옮긴다** (ModularUI 쓰지 않음).
 
@@ -157,11 +157,21 @@ EU이므로 "IC2 에너지 금지"의 예외로 **아이템 충전에 한해** `
     장치 단독 재조합(NBT 초기화)은 두 모드 공통. 레시피 클래스 3종은 `RecipeSorter.register`(`fluxnetworks:shaped`/`storage`/`shapeless`)
 - **X NEI**: `client/integration/nei/`에 `IConfigureNEI` 구현과 `TemplateRecipeHandler`. 원작 JEI `FluxCraftingCategory`(흑요석 위 레드스톤 → 좌클릭 → 플럭스)를 옮기고
   텍스처 `gui_creating_flux_recipe.png`를 원작에서 복사한다. W의 레시피(`ShapedOreRecipe` 하위)가 NEI 기본 핸들러에 보이는지 확인
+  - 결과 (완료): `NEIFluxNetworksConfig`(NEI가 이름으로 찾아 불러옴, `enableFluxRecipe`일 때만 핸들러·카탈리스트(플럭스) 등록)와
+    `FluxCraftingHandler`(핸들러 ID `"flux"`, 원작 좌표를 너비 166 가운데로 19px 이동, 높이 80). 크기·탭 아이콘은 플러그인 로딩보다 먼저 처리돼야 해서
+    `ClientProxy.init`이 `Loader.isModLoaded("NotEnoughItems")`를 확인하고 IMC `registerHandlerInfo`로 보낸다(`sendHandlerInfo`).
+    애니메이션은 블록 `renderBlockAsItem`, 아이템 `renderItemIn2D`, 타이머는 시스템 시간 3초 주기(`// 원작과 다름`). 애니메이션 영역은 전송 영역(누르면 전체 레시피)이기도 하다.
+    텍스처·번역 키(`info.fluxnetworks.jei.*`)는 이미 있었다. W의 레시피 클래스는 `ShapedOreRecipe`/`ShapelessOreRecipe` 하위라 NEI 기본 핸들러가 `instanceof`로 잡는다(게임에서 확인)
 - **Y WAILA**: 원작 `TOPIntegration`을 `common/integration/`의 WAILA 프로바이더로 옮긴다 (IMC `"Waila"`, `"register"`).
   - 데이터는 서버 `getNBTData`로 보낸다 (멀티플레이 정확도). 표시: 네트워크 이름, 전송량, 버퍼(스토리지는 저장량), 한도, 우선순위·서지, 청크 로딩,
     EU 티어·암페어(원작에 없음, `// 원작과 다름`). 머리 줄은 장치 표시 이름(원작 TOP의 display override)
   - 원작 `enableOneProbe*` 설정 대신 WAILA 자체 설정(`IWailaRegistrar.addConfig`)을 쓴다 (`// 원작과 다름`)
   - `ConnectionTransfer`의 `// TODO 5단계:`(인접 장치 표시용 ItemStack)는 추가하지 않는다. 원작 GUI도 쓰지 않았으므로 TODO만 지운다
+  - 결과 (완료): `common/integration/WailaIntegration`(head·body·NBT 프로바이더, 대상 `BlockFluxCore`). `CommonProxy.init`이 `Loader.isModLoaded("Waila")`일 때
+    IMC로 `...WailaIntegration.register`를 문자열로 보낸다. 서버 `getNBTData`가 하위 태그 `"fluxnetworks"`에 이름·네트워크·종류·전송량·버퍼·한도·우선순위·서지·청크 로딩·티어·암페어를 담는다.
+    스토리지가 `IFluxPlug`·`IFluxPoint`를 둘 다 구현하므로 EU 값은 연결 종류로 고른다. 머리 줄은 사용자 지정 이름이 있을 때만 바꾼다(`// 원작과 다름`).
+    설정 `fluxnetworks.basic`/`advanced`/`sneaking`(기본 모두 true, 원작 TOP 설정 3개와 같은 의미, 문구 `option.fluxnetworks.*`는 en_US만).
+    웅크리면 버퍼를 전체 숫자로 표시. 티어 표시는 `GuiDraw.formatTier`와 같은 형식을 따로 둔다(GuiDraw는 클라이언트 전용). `ConnectionTransfer` TODO 삭제
 - **Z 배포**: 버전·`mcmod.info`(현재 템플릿 예제 문구 그대로, 원작자 크레딧)·README·LICENSE(원작 MIT 고지, `LICENSE-template` 대체).
   GT5U를 2.9.0 매니페스트의 **5.09.54.264**로 올리고 빌드·게임 테스트를 다시 한다. 배포 jar를 바우블 없는 환경에서도 실행해 확인 (V의 회색 바우블 칸 확인 포함)
   - `GuiTabMembers`의 `// TODO 5단계:`(이름으로 멤버 추가)는 **넣지 않는다**. 원작에서도 주석 처리된 기능이라는 설명 주석으로 바꾼다

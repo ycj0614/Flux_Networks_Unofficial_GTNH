@@ -14,6 +14,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import net.minecraftforge.client.MinecraftForgeClient;
 
+import com.ycj0614.fluxnetworks.FluxConfig;
 import com.ycj0614.fluxnetworks.FluxNetworks;
 import com.ycj0614.fluxnetworks.api.gui.EnumFeedbackInfo;
 import com.ycj0614.fluxnetworks.api.network.AccessLevel;
@@ -21,6 +22,7 @@ import com.ycj0614.fluxnetworks.client.gui.GuiFluxAdminHome;
 import com.ycj0614.fluxnetworks.client.gui.GuiFluxConfiguratorHome;
 import com.ycj0614.fluxnetworks.client.gui.GuiFluxConnectorHome;
 import com.ycj0614.fluxnetworks.client.gui.basic.GuiFluxCore;
+import com.ycj0614.fluxnetworks.client.integration.nei.NEIFluxNetworksConfig;
 import com.ycj0614.fluxnetworks.client.render.BlockFluxRenderer;
 import com.ycj0614.fluxnetworks.client.render.ItemFluxDeviceRenderer;
 import com.ycj0614.fluxnetworks.client.render.TileFluxStorageRenderer;
@@ -37,6 +39,8 @@ import com.ycj0614.fluxnetworks.common.tileentity.TileFluxStorage;
 
 import cpw.mods.fml.client.registry.ClientRegistry;
 import cpw.mods.fml.client.registry.RenderingRegistry;
+import cpw.mods.fml.common.Loader;
+import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
@@ -63,6 +67,15 @@ public class ClientProxy extends CommonProxy {
         // 이 클래스의 @SubscribeEvent 메서드도 이미 등록된다. 여기서 다시 등록하지 않는다.
         super.preInit(event);
         registerRenderers();
+    }
+
+    @Override
+    public void init(FMLInitializationEvent event) {
+        super.init(event);
+        // NEI 핸들러 크기·아이콘은 플러그인 로딩 전에 IMC로 알려야 한다. NEI가 없으면 NEI 클래스를 건드리지 않는다
+        if (FluxConfig.enableFluxRecipe && Loader.isModLoaded("NotEnoughItems")) {
+            NEIFluxNetworksConfig.sendHandlerInfo();
+        }
     }
 
     /**

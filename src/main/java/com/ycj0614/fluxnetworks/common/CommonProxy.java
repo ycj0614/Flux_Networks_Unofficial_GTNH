@@ -49,6 +49,7 @@ import com.ycj0614.fluxnetworks.common.registry.RegistryRecipes;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
+import cpw.mods.fml.common.event.FMLInterModComms;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.eventhandler.EventPriority;
@@ -96,6 +97,13 @@ public class CommonProxy {
         // 원작 DefaultSuperAdmin.register()(캐퍼빌리티 등록) 대체: 플레이어 생성 시 SuperAdminData를 붙인다 (Forge 버스)
         MinecraftForge.EVENT_BUS.register(new SuperAdminHandler());
         NetworkRegistry.INSTANCE.registerGuiHandler(FluxNetworks.instance, new GuiHandler());
+        // WAILA 프로바이더는 클래스 이름 문자열로만 넘긴다 (WAILA가 없을 때 WailaIntegration을 불러오지 않도록)
+        if (Loader.isModLoaded("Waila")) {
+            FMLInterModComms.sendMessage(
+                "Waila",
+                "register",
+                "com.ycj0614.fluxnetworks.common.integration.WailaIntegration.register");
+        }
     }
 
     public void postInit(FMLPostInitializationEvent event) {

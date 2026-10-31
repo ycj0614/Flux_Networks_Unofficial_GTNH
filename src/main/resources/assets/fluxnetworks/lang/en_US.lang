@@ -140,3 +140,8 @@ info.fluxnetworks.access.superadmin=Super Admin
 
 info.fluxnetworks.jei.creatingfluxrecipe=Creating Flux
 info.fluxnetworks.jei.leftclickhelp=Left click the %s
+
+# WAILA config (option.<key>)
+option.fluxnetworks.basic=Basic Info (Network, Transfer, Buffer)
+option.fluxnetworks.advanced=Advanced Info (Limit, Priority, Tier)
+option.fluxnetworks.sneaking=Advanced Info Only When Sneaking
