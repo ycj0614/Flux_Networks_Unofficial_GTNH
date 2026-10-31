@@ -68,6 +68,7 @@ info.fluxnetworks.flux.change=Change
 info.fluxnetworks.flux.averagetick=Average Tick
 info.fluxnetworks.flux.maxinputtier=Max Input Tier
 info.fluxnetworks.flux.outputtier=Output Tier
+info.fluxnetworks.flux.tier=Tier
 info.fluxnetworks.flux.outputamperage=Output Amperage
 info.fluxnetworks.flux.tierclick=Left Click: Next Tier, Right Click: Previous Tier
 info.fluxnetworks.configurator.copied=Copied Configuration

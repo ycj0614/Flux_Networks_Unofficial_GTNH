@@ -37,7 +37,7 @@ git -C ../reference/GT5-Unofficial sparse-checkout set src/main/java/gregtech/ap
 | --- | --- | --- |
 | 1단계 EU 전송 MVP | A API / B 진입점·설정·프록시 / C 네트워크 코어 / D 저장 데이터·FluxUtils / E 전송 핸들러 / F 타일 / G 블록·등록·디버그 명령 | 완료, 게임 테스트 통과 |
 | 2단계 GUI·패킷 | H 패킷 기반·SuperAdmin·동기화 패킷 / I 명령 패킷 / J 구성기·ItemBlock·색상 캐시 / K GUI 틀 / L GUI 화면 / M `/fluxdebug` 삭제·TODO 정리 | **완료 (마일스톤)**, 데디케이티드 서버 멀티플레이 테스트 통과 |
-| 3단계 | N 스토리지 / O 컨트롤러 / P 플럭스 아이템·블록 / Q 청크 로딩·일괄 편집 / R 원작 모양 렌더링·네트워크 색상 | N 완료·게임 테스트 통과, O·P 완료(게임 테스트 대기), 다음은 **Q** |
+| 3단계 | N 스토리지 / O 컨트롤러 / P 플럭스 아이템·블록 / Q 청크 로딩·일괄 편집 / R 원작 모양 렌더링·네트워크 색상 | N 완료·게임 테스트 통과, O·P·Q 완료(게임 테스트 대기), 다음은 **R** |
 | 4단계 | 컨트롤러 무선 충전 (GT 전기 아이템) | 대기 |
 | 5단계 | GT 레시피, NEI, WAILA, 배포 | 대기 |
 
@@ -71,10 +71,14 @@ GUI는 **원작 GUI를 그대로 옮긴다** (ModularUI 쓰지 않음).
   - 결과: `ItemCore`, `ItemFlux`(툴팁), `BlockCore`(`Material.rock`, 원작처럼 경도 0), `EntityFireItem`(1.7.10은 불 면역이면 불 피해 자체가 안 오므로
     면역을 끄고 `attackEntityFrom`에서 불 피해를 막으며 `inFire` 때 변환, `// 원작과 다름`). `CommonProxy.onPlayerInteract`(`LEFT_CLICK_BLOCK`, Flux를 최대 스택으로 나눠 떨어뜨림)와
     `onEntityAdded`(청크 로드 중 CME를 피하려고 `scheduleServerTask`로 다음 틱에 교체, `// 원작과 다름`)
-- **Q 청크 로딩·일괄 편집**: 원작 `FluxChunkManager`, `ForgeChunkManager` 콜백 등록(`CommonProxy`), `FluxNetworkData`의 청크 목록 저장,
+- **Q 청크 로딩·일괄 편집 (완료)**: 원작 `FluxChunkManager`, `ForgeChunkManager` 콜백 등록(`CommonProxy`), `FluxNetworkData`의 청크 목록 저장,
   `PacketTileHandler`의 `forceChunk/releaseChunk`, `TileFluxCore.invalidate`의 해제, `PacketBatchEditing` `editions[5]`, 구성기 홈의 청크 로딩 스위치.
   - `ChunkPos` 대신 `ChunkCoordIntPair`. `FluxConfig.enableChunkLoading`이 꺼져 있으면 모두 거부
   - 같은 배치에서 연결 탭의 티어·암페어 일괄 편집(`GuiPopConnectionEdit`, `PacketBatchEditing`, `FluxLiteConnector`에 EU 설정 추가. 원작에 없는 기능)
+  - 결과: `FluxChunkManager`(`common/data`, 장치 청크 걸기·풀기는 `setChunkLoading(tile, load)`. 티켓 null 처리, 콜백 `put`, `WorldEvent.Unload` 때 티켓 캐시 제거 `// 원작과 다름`).
+    단일 패킷은 스토리지를 서버에서도 거부하고 이미 로딩 중이면 그대로 둔다(`// 원작과 다름`). 구성기 설정 `FluxConfigurationType.CHUNK_LOADING`(키 `"chunk"`, 스위치 y=114, 스토리지는 복사·붙여넣기 안 함, 로더가 이미 있으면 조용히 꺼진 채).
+    `PacketBatchEditing` editions 9개(7 티어, 8 출력 암페어, 태그 `"tier"`·`"oa"`). `FluxLiteConnector`에 `tier`·`amperage`(NBT `"mt"`/`"ot"`/`"oa"`, `getEUTier`/`getEUAmperage`).
+    티어 선택 칸은 `GuiDraw.drawTierSelector`/`cycleTier`/`formatTier` 공용. 번역 키 `flux.tier`
 - **R 원작 모양 렌더링·네트워크 색상**: ISBRH(`ISimpleBlockRenderingHandler`)로 원작 모양(플러그 0.25~0.75, 포인트 0.375~0.625, 컨트롤러·스토리지)과
   경계 상자, 원작 `BlockSidedConnection`의 면 연결 표시, 스토리지 TESR 에너지 게이지와 아이템 렌더러(`IItemRenderer`),
   네트워크 색 입히기(블록 `colorMultiplier`, 구성기 2레이어 아이콘. 원작 `FluxColorHandler`의 색 부분, `ClientProxy` TODO).
@@ -131,6 +135,7 @@ GUI는 **원작 GUI를 그대로 옮긴다** (ModularUI 쓰지 않음).
   17 ConfiguratorSettings, 18 SetConfiguratorNetwork (7·8·17·18은 배치 J에서 등록)
 - enum을 ordinal로 읽을 때 범위를 벗어나면 패킷을 무시한다
 - `ITileByteBuf` ID: 1 이름, 2 우선순위, 3 한도, 4 서지 모드, 5 한도 해제, 6 티어(플러그 최대 입력·포인트 출력), 7 출력 암페어(포인트)
+- `PacketBatchEditing` editions: 0 이름, 1 우선순위, 2 한도, 3 서지, 4 한도 해제, 5 청크 로딩, 6 연결 해제, 7 티어, 8 출력 암페어 (7·8은 배치 Q에서 추가)
 
 ## 보안 규칙 (원작과 다름, 코드에 `// 보안:` 주석)
 

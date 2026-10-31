@@ -36,7 +36,7 @@ public class GuiFluxConfiguratorHome extends GuiTabCore {
     public NormalButton apply;
     public TextboxButton fluxName, priority, limit;
 
-    public SlidedSwitchButton surge, disableLimit;
+    public SlidedSwitchButton surge, disableLimit, chunkLoad;
 
     public ItemStack stack;
     public NBTTagCompound configTag;
@@ -47,6 +47,7 @@ public class GuiFluxConfiguratorHome extends GuiTabCore {
 
     public boolean stackSurgeMode;
     public boolean stackDisableLimit;
+    public boolean stackChunkLoading;
 
     private int timer;
 
@@ -76,6 +77,7 @@ public class GuiFluxConfiguratorHome extends GuiTabCore {
 
         fontRendererObj.drawString(FluxTranslate.SURGE_MODE.t(), 20, 90, color);
         fontRendererObj.drawString(FluxTranslate.DISABLE_LIMIT.t(), 20, 102, color);
+        fontRendererObj.drawString(FluxTranslate.CHUNK_LOADING.t(), 20, 114, color);
     }
 
     @Override
@@ -103,7 +105,8 @@ public class GuiFluxConfiguratorHome extends GuiTabCore {
 
         switches.add(surge = new SlidedSwitchButton(140, 90, 1, guiLeft, guiTop, stackSurgeMode));
         switches.add(disableLimit = new SlidedSwitchButton(140, 102, 2, guiLeft, guiTop, stackDisableLimit));
-        // TODO 3단계: 청크 로딩 스위치 (원작에서도 주석 처리되어 있었다: SlidedSwitchButton(140, 144, 3, ...))
+        // 원작과 다름: 원작은 이 스위치가 주석 처리되어 있었다. 원작 위치 y=144는 적용 버튼과 겹쳐서 y=114에 둔다
+        switches.add(chunkLoad = new SlidedSwitchButton(140, 114, 3, guiLeft, guiTop, stackChunkLoading));
         buttons.add(apply = new NormalButton(FluxTranslate.APPLY.t(), xSize / 2 - 36 / 2, 138, 36, 12, 3));
         apply.clickable = configTag == null;
 
@@ -144,6 +147,10 @@ public class GuiFluxConfiguratorHome extends GuiTabCore {
                         stackDisableLimit = switchButton.slideControl;
                         onSettingsChanged();
                         break;
+                    case 3:
+                        stackChunkLoading = switchButton.slideControl;
+                        onSettingsChanged();
+                        break;
                 }
             }
             if (button == apply) {
@@ -153,6 +160,7 @@ public class GuiFluxConfiguratorHome extends GuiTabCore {
                 tag.setLong(FluxConfigurationType.TRANSFER.getNBTName(), stackLimit);
                 tag.setBoolean(FluxConfigurationType.PRIORITY_SETTING.getNBTName(), stackSurgeMode);
                 tag.setBoolean(FluxConfigurationType.TRANSFER_SETTING.getNBTName(), stackDisableLimit);
+                tag.setBoolean(FluxConfigurationType.CHUNK_LOADING.getNBTName(), stackChunkLoading);
                 // 원작과 다름: 장치에서 복사해 둔 EU 설정은 이 화면에서 고치지 않으므로 그대로 넘긴다
                 // (서버의 sanitize는 보낸 키만 남긴다)
                 copyEUSetting(tag, TileFluxPlug.NBT_MAX_INPUT_TIER);
@@ -189,11 +197,13 @@ public class GuiFluxConfiguratorHome extends GuiTabCore {
             stackSurgeMode = configTag.getBoolean(FluxConfigurationType.PRIORITY_SETTING.getNBTName());
             stackLimit = configTag.getLong(FluxConfigurationType.TRANSFER.getNBTName());
             stackDisableLimit = configTag.getBoolean(FluxConfigurationType.TRANSFER_SETTING.getNBTName());
+            stackChunkLoading = configTag.getBoolean(FluxConfigurationType.CHUNK_LOADING.getNBTName());
         } else {
             stackPriority = 0;
             stackSurgeMode = false;
             stackLimit = FluxConfig.defaultLimit;
             stackDisableLimit = false;
+            stackChunkLoading = false;
         }
     }
 
@@ -206,6 +216,7 @@ public class GuiFluxConfiguratorHome extends GuiTabCore {
                 || stackLimit != configTag.getLong(FluxConfigurationType.TRANSFER.getNBTName())
                 || stackSurgeMode != configTag.getBoolean(FluxConfigurationType.PRIORITY_SETTING.getNBTName())
                 || stackDisableLimit != configTag.getBoolean(FluxConfigurationType.TRANSFER_SETTING.getNBTName())
+                || stackChunkLoading != configTag.getBoolean(FluxConfigurationType.CHUNK_LOADING.getNBTName())
                 || !stackCustomName.equals(stack.getDisplayName());
         }
     }

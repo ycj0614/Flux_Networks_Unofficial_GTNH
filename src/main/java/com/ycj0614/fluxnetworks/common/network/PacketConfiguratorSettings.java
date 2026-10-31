@@ -82,6 +82,10 @@ public class PacketConfiguratorSettings
         if (in.hasKey(key, Constants.NBT.TAG_BYTE)) {
             out.setBoolean(key, in.getBoolean(key));
         }
+        key = FluxConfigurationType.CHUNK_LOADING.getNBTName();
+        if (in.hasKey(key, Constants.NBT.TAG_BYTE)) {
+            out.setBoolean(key, in.getBoolean(key));
+        }
         key = TileFluxPlug.NBT_MAX_INPUT_TIER;
         if (in.hasKey(key, Constants.NBT.TAG_INT)) {
             out.setInteger(key, GTEnergy.clampTier(in.getInteger(key)));

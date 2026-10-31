@@ -2,9 +2,11 @@ package com.ycj0614.fluxnetworks.api.utils;
 
 import net.minecraft.nbt.NBTTagCompound;
 
+import com.ycj0614.fluxnetworks.FluxConfig;
 import com.ycj0614.fluxnetworks.api.network.IFluxNetwork;
 import com.ycj0614.fluxnetworks.common.connection.FluxNetworkCache;
 import com.ycj0614.fluxnetworks.common.core.FluxUtils;
+import com.ycj0614.fluxnetworks.common.data.FluxChunkManager;
 import com.ycj0614.fluxnetworks.common.tileentity.TileFluxCore;
 import com.ycj0614.fluxnetworks.common.tileentity.TileFluxPlug;
 import com.ycj0614.fluxnetworks.common.tileentity.TileFluxPoint;
@@ -38,8 +40,15 @@ public class FluxConfigurationType {
         FluxConfigurationType::copyTransferSetting,
         FluxConfigurationType::pasteTransferSetting);
 
+    /** 원작과 다름: 원작은 구성기의 청크 로딩 설정이 비활성(주석)이었다 */
+    public static FluxConfigurationType CHUNK_LOADING = new FluxConfigurationType(
+        6,
+        "chunk",
+        FluxConfigurationType::copyChunkLoading,
+        FluxConfigurationType::pasteChunkLoading);
+
     public static FluxConfigurationType[] VALUES = new FluxConfigurationType[] { NETWORK, PRIORITY, PRIORITY_SETTING,
-        TRANSFER, TRANSFER_SETTING };
+        TRANSFER, TRANSFER_SETTING, CHUNK_LOADING };
 
     public int ordinal;
     public String key;
@@ -169,6 +178,32 @@ public class FluxConfigurationType {
 
     public static void pasteTransferSetting(NBTTagCompound nbt, String key, TileFluxCore tile) {
         tile.disableLimit = nbt.getBoolean(key);
+    }
+
+    //// CHUNK LOADING \\\\
+
+    public static void copyChunkLoading(NBTTagCompound nbt, String key, TileFluxCore tile) {
+        // 스토리지는 청크 로딩을 쓰지 않으므로 복사하지 않는다 (붙여넣을 때 다른 장치의 설정을 건드리지 않게)
+        if (!tile.getConnectionType()
+            .isStorage()) {
+            nbt.setBoolean(key, tile.chunkLoading);
+        }
+    }
+
+    /** 원작 PacketTileHandler.handleChunkLoadPacket과 같은 규칙. 그 청크에 이미 로더가 있으면 꺼진 채로 남는다 */
+    public static void pasteChunkLoading(NBTTagCompound nbt, String key, TileFluxCore tile) {
+        if (!FluxConfig.enableChunkLoading) {
+            tile.chunkLoading = false;
+            return;
+        }
+        if (tile.getConnectionType()
+            .isStorage()) {
+            return;
+        }
+        boolean load = nbt.getBoolean(key);
+        if (load != tile.chunkLoading) {
+            FluxChunkManager.setChunkLoading(tile, load);
+        }
     }
 
     public interface ICopyMethod<T> {

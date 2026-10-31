@@ -16,9 +16,11 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.World;
+import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import net.minecraftforge.event.world.WorldEvent;
 
 import com.ycj0614.fluxnetworks.FluxConfig;
 import com.ycj0614.fluxnetworks.FluxNetworks;
@@ -31,6 +33,7 @@ import com.ycj0614.fluxnetworks.common.capabilities.SuperAdminHandler;
 import com.ycj0614.fluxnetworks.common.connection.FluxNetworkCache;
 import com.ycj0614.fluxnetworks.common.connection.FluxNetworkInvalid;
 import com.ycj0614.fluxnetworks.common.core.EntityFireItem;
+import com.ycj0614.fluxnetworks.common.data.FluxChunkManager;
 import com.ycj0614.fluxnetworks.common.event.FluxConnectionEvent;
 import com.ycj0614.fluxnetworks.common.handler.GuiHandler;
 import com.ycj0614.fluxnetworks.common.handler.PacketHandler;
@@ -88,8 +91,7 @@ public class CommonProxy {
     }
 
     public void postInit(FMLPostInitializationEvent event) {
-        // TODO 3단계: 원작의 ForgeChunkManager.setForcedChunkLoadingCallback(FluxNetworks.instance,
-        // FluxChunkManager::callback) 호출 — 플럭스 타일 청크 로딩 콜백 등록
+        ForgeChunkManager.setForcedChunkLoadingCallback(FluxNetworks.instance, FluxChunkManager::callback);
     }
 
     public void onServerStarted() {
@@ -98,8 +100,16 @@ public class CommonProxy {
 
     public void onServerStopped() {
         FluxNetworkCache.instance.clearNetworks();
-        // TODO 3단계: 원작의 FluxChunkManager.clear() 호출 — 청크 로딩 티켓 캐시 초기화
+        FluxChunkManager.clear();
         serverTasks.clear();
+    }
+
+    /** 원작과 다름: 언로드된 차원의 청크 로딩 티켓을 캐시에서 지운다 (Forge 버스) */
+    @SubscribeEvent
+    public void onWorldUnload(WorldEvent.Unload event) {
+        if (!event.world.isRemote) {
+            FluxChunkManager.onWorldUnload(event.world);
+        }
     }
 
     public static CreativeTabs creativeTabs = new CreativeTabs(FluxNetworks.MODID) {

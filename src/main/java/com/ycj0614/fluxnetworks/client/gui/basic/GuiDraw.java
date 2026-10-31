@@ -14,6 +14,8 @@ import net.minecraft.util.ResourceLocation;
 import org.lwjgl.opengl.GL11;
 
 import com.ycj0614.fluxnetworks.FluxNetworks;
+import com.ycj0614.fluxnetworks.common.core.FluxUtils;
+import com.ycj0614.fluxnetworks.common.core.GTEnergy;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -130,5 +132,35 @@ public abstract class GuiDraw extends GuiContainer implements ITextBoxButton {
         int maxLength = fontRendererObj.getStringWidth(text);
         drawRect(x, y, x + maxLength + 4, y + 12, 0x80000000);
         fontRendererObj.drawString(text, x + 2, y + 2, Color.GREEN.getRGB());
+    }
+
+    //// GT 티어 선택 칸 (원작에 없음. 장치 홈 화면과 연결 편집 팝업이 같이 쓴다) \\\\
+
+    /** 텍스트 상자와 같은 모양의 테두리 안에 "라벨: LV (32 EU/t)"를 그린다. 마우스를 올리면 테두리가 흰색 */
+    protected void drawTierSelector(int x, int y, int width, int height, String label, int tier, boolean hovered,
+        int outlineColor) {
+        drawColorRect(x, y, height, width, hovered ? 0xffffffff : outlineColor);
+        drawRect(x, y, x + width, y + height, 0x20000000);
+        String text = label + ": ";
+        fontRendererObj.drawString(text, x, y + 2, outlineColor);
+        fontRendererObj.drawString(
+            EnumChatFormatting.AQUA + formatTier(tier),
+            x + fontRendererObj.getStringWidth(text),
+            y + 2,
+            0xffffff);
+    }
+
+    /** "LV (32 EU/t)" 형식 */
+    public static String formatTier(int tier) {
+        return GTEnergy.tierName(tier) + " ("
+            + FluxUtils.format(GTEnergy.voltage(tier), FluxUtils.TypeNumberFormat.COMMAS, true)
+            + ")";
+    }
+
+    /** 좌클릭(forward)은 다음 티어, 우클릭은 이전 티어. 끝에서는 반대쪽으로 넘어간다 */
+    public static int cycleTier(int tier, boolean forward) {
+        int count = GTEnergy.MAX_TIER - GTEnergy.MIN_TIER + 1;
+        int t = GTEnergy.clampTier(tier) - GTEnergy.MIN_TIER + (forward ? 1 : count - 1);
+        return t % count + GTEnergy.MIN_TIER;
     }
 }

@@ -53,6 +53,7 @@ public class FluxTranslate {
     public static final Translation MAX_INPUT_TIER = i("flux.maxinputtier");
     public static final Translation OUTPUT_TIER = i("flux.outputtier");
     public static final Translation OUTPUT_AMPERAGE = i("flux.outputamperage");
+    public static final Translation TIER = i("flux.tier");
     public static final Translation TIER_CLICK = i("flux.tierclick");
 
     public static final Translation SORT_BY = i("gui.sortby");

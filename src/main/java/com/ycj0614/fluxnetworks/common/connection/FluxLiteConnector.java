@@ -10,8 +10,12 @@ import com.ycj0614.fluxnetworks.api.network.ConnectionType;
 import com.ycj0614.fluxnetworks.api.network.IFluxNetwork;
 import com.ycj0614.fluxnetworks.api.network.ITransferHandler;
 import com.ycj0614.fluxnetworks.api.tiles.IFluxConnector;
+import com.ycj0614.fluxnetworks.api.tiles.IFluxPlug;
+import com.ycj0614.fluxnetworks.api.tiles.IFluxPoint;
 import com.ycj0614.fluxnetworks.api.utils.Coord4D;
 import com.ycj0614.fluxnetworks.api.utils.NBTType;
+import com.ycj0614.fluxnetworks.common.tileentity.TileFluxPlug;
+import com.ycj0614.fluxnetworks.common.tileentity.TileFluxPoint;
 
 /**
  * 언로드된 청크에 있는 커넥터 정보의 스냅샷
@@ -32,6 +36,9 @@ public class FluxLiteConnector implements IFluxConnector {
     public boolean chunkLoading;
     public long buffer;
     public long change;
+    // 원작에 없음: GT EU 설정 (연결 탭 표시·편집용). 플러그는 최대 입력 티어, 포인트는 출력 티어와 출력 암페어. 그 밖에는 0
+    public int tier;
+    public long amperage;
     // 원작과 다름: 원작은 표시용 ItemStack(tile.getDisplayStack())도 저장했다.
     // 여기서는 IFluxConnector.getDisplayStack()이 연결 종류로 아이콘을 정하므로 저장하지 않는다
 
@@ -52,6 +59,8 @@ public class FluxLiteConnector implements IFluxConnector {
         this.change = tile.getTransferHandler()
             .getChange();
         this.chunkLoading = tile.isForcedLoading();
+        this.tier = getEUTier(tile);
+        this.amperage = getEUAmperage(tile);
     }
 
     public FluxLiteConnector(NBTTagCompound tag) {
@@ -76,7 +85,46 @@ public class FluxLiteConnector implements IFluxConnector {
         tag.setLong("buffer", tile.getTransferBuffer());
         tag.setLong("change", tile.getTransferChange());
         tag.setBoolean("forcedChunk", tile.isForcedLoading());
+        writeEUSettings(tag, tile.getConnectionType(), getEUTier(tile), getEUAmperage(tile));
         return tag;
+    }
+
+    /** 플러그는 최대 입력 티어, 포인트는 출력 티어. 그 밖에는 0 (스토리지는 IFluxPlug·IFluxPoint를 둘 다 상속하므로 연결 종류로 가린다) */
+    public static int getEUTier(IFluxConnector tile) {
+        if (tile instanceof FluxLiteConnector) {
+            return ((FluxLiteConnector) tile).tier;
+        }
+        if (tile.getConnectionType()
+            .isPlug() && tile instanceof IFluxPlug) {
+            return ((IFluxPlug) tile).getMaxInputTier();
+        }
+        if (tile.getConnectionType()
+            .isPoint() && tile instanceof IFluxPoint) {
+            return ((IFluxPoint) tile).getOutputTier();
+        }
+        return 0;
+    }
+
+    /** 포인트의 출력 암페어. 그 밖에는 0 */
+    public static long getEUAmperage(IFluxConnector tile) {
+        if (tile instanceof FluxLiteConnector) {
+            return ((FluxLiteConnector) tile).amperage;
+        }
+        if (tile.getConnectionType()
+            .isPoint() && tile instanceof IFluxPoint) {
+            return ((IFluxPoint) tile).getOutputAmperage();
+        }
+        return 0;
+    }
+
+    /** 키는 장치 NBT 키와 같다 (플러그 "mt", 포인트 "ot"·"oa") */
+    private static void writeEUSettings(NBTTagCompound tag, ConnectionType type, int tier, long amperage) {
+        if (type.isPlug()) {
+            tag.setInteger(TileFluxPlug.NBT_MAX_INPUT_TIER, tier);
+        } else if (type.isPoint()) {
+            tag.setInteger(TileFluxPoint.NBT_OUTPUT_TIER, tier);
+            tag.setLong(TileFluxPoint.NBT_OUTPUT_AMPERAGE, amperage);
+        }
     }
 
     @Override
@@ -94,6 +142,7 @@ public class FluxLiteConnector implements IFluxConnector {
         tag.setLong("buffer", buffer);
         tag.setLong("change", change);
         tag.setBoolean("forcedChunk", chunkLoading);
+        writeEUSettings(tag, connectionType, tier, amperage);
         return tag;
     }
 
@@ -112,6 +161,9 @@ public class FluxLiteConnector implements IFluxConnector {
         buffer = tag.getLong("buffer");
         change = tag.getLong("change");
         chunkLoading = tag.getBoolean("forcedChunk");
+        tier = tag.hasKey(TileFluxPlug.NBT_MAX_INPUT_TIER) ? tag.getInteger(TileFluxPlug.NBT_MAX_INPUT_TIER)
+            : tag.getInteger(TileFluxPoint.NBT_OUTPUT_TIER);
+        amperage = tag.getLong(TileFluxPoint.NBT_OUTPUT_AMPERAGE);
     }
 
     @Override

@@ -25,6 +25,7 @@ import com.ycj0614.fluxnetworks.api.utils.NBTType;
 import com.ycj0614.fluxnetworks.common.connection.FluxNetworkInvalid;
 import com.ycj0614.fluxnetworks.common.connection.FluxNetworkServer;
 import com.ycj0614.fluxnetworks.common.core.FluxUtils;
+import com.ycj0614.fluxnetworks.common.data.FluxChunkManager;
 import com.ycj0614.fluxnetworks.common.data.FluxNetworkData;
 
 import cpw.mods.fml.common.network.ByteBufUtils;
@@ -89,7 +90,9 @@ public abstract class TileFluxCore extends TileEntity implements IFluxConnector,
         super.invalidate();
         if (worldObj != null && !worldObj.isRemote && load) {
             FluxUtils.removeConnection(this, false);
-            // TODO 3단계: 원작의 FluxChunkManager.releaseChunk(world, chunkPos) (chunkLoading이면 이 타일 청크의 강제 로딩 해제)
+            if (chunkLoading) {
+                FluxChunkManager.releaseChunk(worldObj, FluxChunkManager.getChunk(xCoord, zCoord));
+            }
             getTransferHandler().reset();
             load = false;
         }

@@ -3,11 +3,13 @@ package com.ycj0614.fluxnetworks.common.network;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 
+import com.ycj0614.fluxnetworks.FluxConfig;
 import com.ycj0614.fluxnetworks.api.gui.EnumFeedbackInfo;
 import com.ycj0614.fluxnetworks.api.network.FluxLogicType;
 import com.ycj0614.fluxnetworks.api.network.IFluxNetwork;
 import com.ycj0614.fluxnetworks.api.network.NetworkSettings;
 import com.ycj0614.fluxnetworks.common.connection.FluxNetworkCache;
+import com.ycj0614.fluxnetworks.common.data.FluxChunkManager;
 import com.ycj0614.fluxnetworks.common.data.FluxNetworkData;
 import com.ycj0614.fluxnetworks.common.tileentity.TileFluxCore;
 
@@ -69,13 +71,31 @@ public class PacketTileHandler {
     }
 
     public static IMessage handleChunkLoadPacket(TileFluxCore tile, EntityPlayer player, NBTTagCompound tag) {
-        // TODO 3단계: FluxChunkManager.forceChunk/releaseChunk (원작 로직)
-        // boolean load = tag.getBoolean(CHUNK_LOADING);
-        // FluxConfig.enableChunkLoading이면
-        // load: tile.chunkLoading = forceChunk(world, 타일 청크); 실패면 HAS_LOADER 반환, 성공이면 null
-        // !load: releaseChunk(world, 타일 청크); tile.chunkLoading = false; null 반환
-        // 아니면 아래와 같이 chunkLoading = false, BANNED_LOADING
-        tile.chunkLoading = false;
+        boolean load = tag.getBoolean(CHUNK_LOADING);
+        if (FluxConfig.enableChunkLoading) {
+            if (load) {
+                // 원작과 다름: 스토리지는 GUI에서 스위치를 숨길 뿐 아니라 서버에서도 거부한다
+                if (tile.getConnectionType()
+                    .isStorage()) {
+                    tile.chunkLoading = false;
+                    return new PacketFeedback.FeedbackMessage(EnumFeedbackInfo.REJECT);
+                }
+                // 원작과 다름: 이미 로딩 중이면 그대로 둔다 (원작은 forceChunk가 false라 스스로 꺼졌다)
+                if (tile.chunkLoading) {
+                    return null;
+                }
+                boolean p = FluxChunkManager.setChunkLoading(tile, true);
+                if (!p) {
+                    return new PacketFeedback.FeedbackMessage(EnumFeedbackInfo.HAS_LOADER);
+                }
+                return null;
+            } else {
+                FluxChunkManager.setChunkLoading(tile, false);
+                return null;
+            }
+        } else {
+            tile.chunkLoading = false;
+        }
         return new PacketFeedback.FeedbackMessage(EnumFeedbackInfo.BANNED_LOADING);
     }
 }

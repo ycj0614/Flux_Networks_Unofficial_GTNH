@@ -12,8 +12,6 @@ import com.ycj0614.fluxnetworks.client.gui.basic.GuiButtonCore;
 import com.ycj0614.fluxnetworks.client.gui.basic.GuiTabCore;
 import com.ycj0614.fluxnetworks.client.gui.button.SlidedSwitchButton;
 import com.ycj0614.fluxnetworks.client.gui.button.TextboxButton;
-import com.ycj0614.fluxnetworks.common.core.FluxUtils;
-import com.ycj0614.fluxnetworks.common.core.GTEnergy;
 import com.ycj0614.fluxnetworks.common.handler.PacketHandler;
 import com.ycj0614.fluxnetworks.common.network.PacketByteBuf;
 import com.ycj0614.fluxnetworks.common.network.PacketNetworkUpdateRequest;
@@ -103,30 +101,16 @@ public class GuiFluxConnectorHome extends GuiTabCore {
         }
     }
 
-    /** 텍스트 상자와 같은 모양의 테두리 안에 "이름: LV (32 EU/t)"를 그린다 */
     private void renderTierSelector(int mouseX, int mouseY, int outlineColor) {
-        boolean hovered = isTierHovered(mouseX - guiLeft, mouseY - guiTop);
-        int frame = hovered ? 0xffffffff : outlineColor;
-        drawRect(TIER_X - 1, TIER_Y - 1, TIER_X + TIER_WIDTH + 1, TIER_Y, frame);
-        drawRect(TIER_X - 1, TIER_Y + TIER_HEIGHT, TIER_X + TIER_WIDTH + 1, TIER_Y + TIER_HEIGHT + 1, frame);
-        drawRect(TIER_X - 1, TIER_Y, TIER_X, TIER_Y + TIER_HEIGHT, frame);
-        drawRect(TIER_X + TIER_WIDTH, TIER_Y, TIER_X + TIER_WIDTH + 1, TIER_Y + TIER_HEIGHT, frame);
-        drawRect(TIER_X, TIER_Y, TIER_X + TIER_WIDTH, TIER_Y + TIER_HEIGHT, 0x20000000);
-
-        String label = (isPoint() ? FluxTranslate.OUTPUT_TIER.t() : FluxTranslate.MAX_INPUT_TIER.t()) + ": ";
-        fontRendererObj.drawString(label, TIER_X, TIER_Y + 2, outlineColor);
-        fontRendererObj.drawString(
-            EnumChatFormatting.AQUA + formatTier(getTier()),
-            TIER_X + fontRendererObj.getStringWidth(label),
-            TIER_Y + 2,
-            0xffffff);
-    }
-
-    /** "LV (32 EU/t)" 형식 */
-    public static String formatTier(int tier) {
-        return GTEnergy.tierName(tier) + " ("
-            + FluxUtils.format(GTEnergy.voltage(tier), FluxUtils.TypeNumberFormat.COMMAS, true)
-            + ")";
+        drawTierSelector(
+            TIER_X,
+            TIER_Y,
+            TIER_WIDTH,
+            TIER_HEIGHT,
+            isPoint() ? FluxTranslate.OUTPUT_TIER.t() : FluxTranslate.MAX_INPUT_TIER.t(),
+            getTier(),
+            isTierHovered(mouseX - guiLeft, mouseY - guiTop),
+            outlineColor);
     }
 
     private boolean isTierHovered(int x, int y) {
@@ -209,10 +193,7 @@ public class GuiFluxConnectorHome extends GuiTabCore {
     public void mouseMainClicked(int mouseX, int mouseY, int mouseButton) {
         super.mouseMainClicked(mouseX, mouseY, mouseButton);
         if (hasTier() && isTierHovered(mouseX - guiLeft, mouseY - guiTop) && (mouseButton == 0 || mouseButton == 1)) {
-            // 좌클릭은 다음 티어, 우클릭은 이전 티어. 끝에서는 반대쪽으로 넘어간다
-            int count = GTEnergy.MAX_TIER - GTEnergy.MIN_TIER + 1;
-            int tier = getTier() - GTEnergy.MIN_TIER + (mouseButton == 0 ? 1 : count - 1);
-            tier = tier % count + GTEnergy.MIN_TIER;
+            int tier = cycleTier(getTier(), mouseButton == 0);
             if (tileEntity instanceof TileFluxPlug) {
                 ((TileFluxPlug) tileEntity).setMaxInputTier(tier);
             } else {
