@@ -39,7 +39,7 @@ git -C ../reference/GT5-Unofficial sparse-checkout set src/main/java/gregtech/ap
 | 2단계 GUI·패킷 | H 패킷 기반·SuperAdmin·동기화 패킷 / I 명령 패킷 / J 구성기·ItemBlock·색상 캐시 / K GUI 틀 / L GUI 화면 / M `/fluxdebug` 삭제·TODO 정리 | **완료 (마일스톤)**, 데디케이티드 서버 멀티플레이 테스트 통과 |
 | 3단계 | N 스토리지 / O 컨트롤러 / P 플럭스 아이템·블록 / Q 청크 로딩·일괄 편집 / R 원작 모양 렌더링·네트워크 색상 | 완료, 게임 테스트 통과 |
 | 4단계 컨트롤러 무선 충전 | S 아이템 충전 헬퍼 / T 충전 핸들러 / U 무선 GUI 탭 / V 바우블 | 완료, 게임 테스트 통과 |
-| 5단계 마무리·연동 | W 레시피 / X NEI / Y WAILA / Z 배포 (가칭) | **다음은 5단계** (배치 범위 확정부터) |
+| 5단계 마무리·연동 | W 레시피 / X NEI / Y WAILA / Z 배포 | W 완료(게임 테스트 대기), **다음은 X** |
 
 GUI는 **원작 GUI를 그대로 옮긴다** (ModularUI 쓰지 않음).
 
@@ -135,24 +135,37 @@ EU이므로 "IC2 에너지 금지"의 예외로 **아이템 충전에 한해** `
     `FluxControllerHandler`는 갑옷 다음에 바우블 슬롯을 충전하고, 스택 NBT만 고친다(`setInventorySlotContents`는 장착 해제·장착 이벤트를 불러서 안 씀).
     그래서 바우블 창을 열기 전에는 클라이언트 충전 표시가 늦을 수 있다. GUI 바우블 칸은 `clickable = baublesLoaded`(`// 원작과 다름`)
 
-### 5단계 배치 (가칭, 시작할 때 범위를 확정한다)
+### 5단계 배치
 
-5단계는 아직 배치 범위가 정해지지 않았다. **첫 배치를 시작하기 전에 아래 초안을 바탕으로 배치 나누기·순서·파일 목록을 보여주고 승인을 받는다.**
-확정되면 이 절의 "가칭"을 지우고 각 배치에 결과를 적는다. 코드에 남은 `// TODO 5단계:`를 검색해 해당 배치에서 처리한다.
+범위는 확정됐다 (승인됨). 순서는 W → X → Y → Z (X가 W의 레시피를 확인한다). 배치마다 따로 사전 승인을 받지 않고, 끝나면 결과를 이 절에 적는다.
+코드에 남은 `// TODO 5단계:`를 검색해 해당 배치에서 처리한다.
 
-- 다른 모드 연동은 모두 선택 의존성이다. V의 바우블과 같은 방식: GTNH 2.9.0 매니페스트
-  (`https://raw.githubusercontent.com/GTNewHorizons/DreamAssemblerXXL/master/releases/manifests/2.9.0.json`)의 버전으로 `compileOnly`,
-  `Loader.isModLoaded`로 확인, 그 모드의 클래스는 `common/integration/`(클라이언트 전용이면 `client/integration/`)의 별도 클래스에서만 import.
-  GT5U를 통해 이미 딸려 오는 모드인지 먼저 `./gradlew dependencies --configuration compileClasspath`로 본다
-- **W 레시피**: 원작 `common/registry/RegistryRecipes`를 참고해 장치·플럭스 아이템 레시피를 정한다. P에서 남긴 "일반 제작대 레시피와 GT 레시피".
-  GT 기계 레시피(GT5U `GTValues.RA` 레시피 빌더)로 할지, 제작대 레시피로 할지, 둘 다인지는 배치 시작 때 사용자와 정한다. 원작 `enableFluxRecipe`·`enableOldRecipe`(P에서 구현)는 그대로 둔다
-- **X NEI**: 원작 JEI 연동(`client/jei/` `FluxCraftingCategory`, `FluxRecipeWrapper`, 텍스처 `gui_creating_flux_recipe.png`)을 NEI 핸들러로 옮긴다
-  (흑요석 위 레드스톤 → 플럭스 월드 안 제작 표시). W에서 만든 레시피가 NEI에 보이는지도 확인
-- **Y WAILA**: 원작 `common/integration/TOPIntegration`(The One Probe)을 WAILA로 옮긴다 (네트워크 이름·연결 상태·전송량·우선순위·한도, 스토리지 에너지 등).
-  `ConnectionTransfer`의 `// TODO 5단계:`(인접 장치 표시용 ItemStack)를 함께 검토한다
-- **Z 배포**: 버전·`mcmod.info`·README·LICENSE(원작 MIT 고지 유지), 배포 jar를 바우블 없는 환경에서도 실행해 확인 (V의 회색 바우블 칸 확인 포함)
-- 범위를 정할 때 같이 결정할 남은 TODO: `GuiTabMembers`의 `// TODO 5단계:`(이름으로 멤버 추가, 원작에서도 주석 처리됨. 넣을지 버릴지),
-  `SuperAdminData`의 `// TODO 확인:`(ops.json 레벨 경로)
+- 다른 모드 연동은 모두 선택 의존성이다. `Loader.isModLoaded`로 확인하고, 그 모드의 클래스는 `common/integration/`(클라이언트 전용이면 `client/integration/`)의
+  별도 클래스에서만 import한다. **NEI(2.8.155-GTNH)와 WAILA(1.19.34)는 GT5U를 통해 이미 compileClasspath에 있으므로 `compileOnly`를 추가하지 않는다**
+  (2.9.0 매니페스트 `https://raw.githubusercontent.com/GTNewHorizons/DreamAssemblerXXL/master/releases/manifests/2.9.0.json`은 NEI 2.8.171, WAILA 1.19.34)
+- **W 레시피**: `common/registry/RegistryRecipes`. 제작대와 GT 레시피를 **둘 다** 넣고 설정으로 고른다.
+  - 기본은 원작 제작대 레시피 그대로 (코어 4개, 구성기, 플럭스 블록, 컨트롤러, 포인트, 플러그, 스토리지 3종 승급, 장치 단독 재조합으로 NBT 초기화).
+    원작 `FluxShapedRecipe`·`FluxShapelessRecipe`·`FluxStorageRecipe`(`ShapedOreRecipe`/`ShapelessOreRecipe` 하위)를 쓰고, 1.7.10은 `RecipeSorter.register`가 필요하다.
+    스토리지 승급은 원작처럼 재료의 에너지 합(`FluxStorageHandler.NBT_ENERGY`)과 첫 네트워크 ID를 이어받는다
+  - `FluxConfig` 토글(이름은 배치에서 정함)을 켜면 제작대 레시피 대신 GT 기계 레시피(GT5U `GTValues.RA` 빌더, 조립기 등)를 등록한다. 재료·티어는 배치 시작 때 표로 제안한다
+  - 원작 `enableFluxRecipe`·`enableOldRecipe`(P에서 구현)는 그대로 둔다
+  - 결과 (완료): `RegistryRecipes.register()`를 `CommonProxy.postInit`에서 부른다. 설정 `FluxConfig.enableGTRecipes`("Enable GT Recipes", GENERAL, 기본 true).
+    GT 모드(조립기): 코어×4 = 플럭스 4·흑요석 판 4·엔더 눈(MV 10초), 플럭스 블록 = 플럭스 4·코어 4(MV 5초), 구성기 = 플럭스 2·흑요석 막대 2·엔더 진주·MV 회로(MV 10초),
+    플러그 = HV 외피·코어 4·HV 센서·HV 회로 2(HV 20초), 포인트 = HV 외피·코어 4·HV 발신기·HV 회로 2(HV 20초),
+    컨트롤러 = EV 외피·플럭스 블록 2·코어·HV 역장 발생기·EV 회로 2(EV 30초). 스토리지는 두 모드 모두 제작대(`FluxStorageRecipe`)이고
+    GT 모드에서는 가운데 줄이 `circuitAdvanced`/`circuitData`/`circuitElite`(HV/EV/IV), 제작대 모드는 원작 `paneGlassColorless`.
+    장치 단독 재조합(NBT 초기화)은 두 모드 공통. 레시피 클래스 3종은 `RecipeSorter.register`(`fluxnetworks:shaped`/`storage`/`shapeless`)
+- **X NEI**: `client/integration/nei/`에 `IConfigureNEI` 구현과 `TemplateRecipeHandler`. 원작 JEI `FluxCraftingCategory`(흑요석 위 레드스톤 → 좌클릭 → 플럭스)를 옮기고
+  텍스처 `gui_creating_flux_recipe.png`를 원작에서 복사한다. W의 레시피(`ShapedOreRecipe` 하위)가 NEI 기본 핸들러에 보이는지 확인
+- **Y WAILA**: 원작 `TOPIntegration`을 `common/integration/`의 WAILA 프로바이더로 옮긴다 (IMC `"Waila"`, `"register"`).
+  - 데이터는 서버 `getNBTData`로 보낸다 (멀티플레이 정확도). 표시: 네트워크 이름, 전송량, 버퍼(스토리지는 저장량), 한도, 우선순위·서지, 청크 로딩,
+    EU 티어·암페어(원작에 없음, `// 원작과 다름`). 머리 줄은 장치 표시 이름(원작 TOP의 display override)
+  - 원작 `enableOneProbe*` 설정 대신 WAILA 자체 설정(`IWailaRegistrar.addConfig`)을 쓴다 (`// 원작과 다름`)
+  - `ConnectionTransfer`의 `// TODO 5단계:`(인접 장치 표시용 ItemStack)는 추가하지 않는다. 원작 GUI도 쓰지 않았으므로 TODO만 지운다
+- **Z 배포**: 버전·`mcmod.info`(현재 템플릿 예제 문구 그대로, 원작자 크레딧)·README·LICENSE(원작 MIT 고지, `LICENSE-template` 대체).
+  GT5U를 2.9.0 매니페스트의 **5.09.54.264**로 올리고 빌드·게임 테스트를 다시 한다. 배포 jar를 바우블 없는 환경에서도 실행해 확인 (V의 회색 바우블 칸 확인 포함)
+  - `GuiTabMembers`의 `// TODO 5단계:`(이름으로 멤버 추가)는 **넣지 않는다**. 원작에서도 주석 처리된 기능이라는 설명 주석으로 바꾼다
+  - `SuperAdminData`의 `// TODO 확인:`(ops.json 플레이어별 레벨)은 SRG 이름을 빌드로 확인해 원작처럼 바꿀지 정하고 TODO를 지운다
 - 원작의 `MekanismIntegration`, `oc`(OpenComputers), `energy`(RF·FE 등)는 옮기지 않는다 (EU 전용 원칙)
 
 ## 작업 방식

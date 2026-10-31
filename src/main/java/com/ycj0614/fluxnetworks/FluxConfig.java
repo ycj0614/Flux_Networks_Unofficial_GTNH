@@ -19,7 +19,7 @@ public class FluxConfig {
     public static final String BLACKLIST = "blacklists";
 
     public static boolean enableButtonSound;
-    public static boolean enableFluxRecipe, enableOldRecipe, enableChunkLoading, enableSuperAdmin;
+    public static boolean enableFluxRecipe, enableOldRecipe, enableGTRecipes, enableChunkLoading, enableSuperAdmin;
     public static int defaultLimit, defaultPlugMaxInputTier, defaultPointTier, defaultPointAmperage, pointBufferTicks;
     public static int basicCapacity, basicTransfer, herculeanCapacity, herculeanTransfer, gargantuanCapacity,
         gargantuanTransfer;
@@ -156,6 +156,12 @@ public class FluxConfig {
             GENERAL,
             false,
             "Enables redstone being turned into Flux when dropped in fire. (Need \"Enable Flux Recipe\" = true, so the default recipe can't be disabled if turns this on)");
+        // 원작과 다름: GT 레시피 선택
+        enableGTRecipes = config.getBoolean(
+            "Enable GT Recipes",
+            GENERAL,
+            true,
+            "Uses GregTech assembler recipes for flux devices and GT parts in storage recipes. If false, the original crafting table recipes are used");
         enableChunkLoading = config
             .getBoolean("Allow Flux Chunk Loading", GENERAL, true, "Allows flux tiles to work as chunk loaders");
 

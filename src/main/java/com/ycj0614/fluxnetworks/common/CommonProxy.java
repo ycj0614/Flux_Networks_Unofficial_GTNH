@@ -44,6 +44,7 @@ import com.ycj0614.fluxnetworks.common.network.PacketNetworkUpdate;
 import com.ycj0614.fluxnetworks.common.network.PacketSuperAdmin;
 import com.ycj0614.fluxnetworks.common.registry.RegistryBlocks;
 import com.ycj0614.fluxnetworks.common.registry.RegistryItems;
+import com.ycj0614.fluxnetworks.common.registry.RegistryRecipes;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Loader;
@@ -98,6 +99,7 @@ public class CommonProxy {
     }
 
     public void postInit(FMLPostInitializationEvent event) {
+        RegistryRecipes.register();
         ForgeChunkManager.setForcedChunkLoadingCallback(FluxNetworks.instance, FluxChunkManager::callback);
     }
 
