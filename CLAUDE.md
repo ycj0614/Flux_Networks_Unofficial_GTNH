@@ -37,7 +37,7 @@ git -C ../reference/GT5-Unofficial sparse-checkout set src/main/java/gregtech/ap
 | --- | --- | --- |
 | 1단계 EU 전송 MVP | A API / B 진입점·설정·프록시 / C 네트워크 코어 / D 저장 데이터·FluxUtils / E 전송 핸들러 / F 타일 / G 블록·등록·디버그 명령 | 완료, 게임 테스트 통과 |
 | 2단계 GUI·패킷 | H 패킷 기반·SuperAdmin·동기화 패킷 / I 명령 패킷 / J 구성기·ItemBlock·색상 캐시 / K GUI 틀 / L GUI 화면 / M `/fluxdebug` 삭제·TODO 정리 | **완료 (마일스톤)**, 데디케이티드 서버 멀티플레이 테스트 통과 |
-| 3단계 | N 스토리지 / O 컨트롤러 / P 플럭스 아이템·블록 / Q 청크 로딩·일괄 편집 / R 원작 모양 렌더링·네트워크 색상 | N 완료·게임 테스트 통과, O 완료(게임 테스트 대기), 다음은 **P** |
+| 3단계 | N 스토리지 / O 컨트롤러 / P 플럭스 아이템·블록 / Q 청크 로딩·일괄 편집 / R 원작 모양 렌더링·네트워크 색상 | N 완료·게임 테스트 통과, O·P 완료(게임 테스트 대기), 다음은 **Q** |
 | 4단계 | 컨트롤러 무선 충전 (GT 전기 아이템) | 대기 |
 | 5단계 | GT 레시피, NEI, WAILA, 배포 | 대기 |
 
@@ -64,10 +64,13 @@ GUI는 **원작 GUI를 그대로 옮긴다** (ModularUI 쓰지 않음).
   - 결과: `FluxControllerHandler`(4단계 TODO는 클래스 주석), `TileFluxController`(`TileFluxCore` 직접 상속, EU getter는 고정값 `// 원작과 다름`),
     `BlockFluxController`, 텍스처 `fluxcontroller_on/off.png`(원작 `model/` 복사). 구성기 붙여넣기 검사는 `FluxUtils.hasOtherController`
     (다른 컨트롤러가 있으면 네트워크만 건너뛰고 나머지 설정은 붙여넣음, 채팅으로 `hascontroller` 안내)
-- **P 플럭스 아이템·블록**: 원작 `ItemFlux`(Flux), `ItemCore`(FluxCore), `BlockCore`(FluxBlock, 바위 재질), `EntityFireItem`,
+- **P 플럭스 아이템·블록 (완료)**: 원작 `ItemFlux`(Flux), `ItemCore`(FluxCore), `BlockCore`(FluxBlock, 바위 재질), `EntityFireItem`,
   `CommonProxy`의 흑요석 좌클릭 제작(`enableFluxRecipe`)과 `onEntyAdded`(`enableOldRecipe`).
   - 등록 이름: 아이템 `flux`, `fluxcore` / 블록 `fluxblock`, 엔티티 `"Flux"`(ID 0)
   - 일반 제작대 레시피와 GT 레시피는 5단계. 이 배치는 원작의 월드 안 제작 방식만
+  - 결과: `ItemCore`, `ItemFlux`(툴팁), `BlockCore`(`Material.rock`, 원작처럼 경도 0), `EntityFireItem`(1.7.10은 불 면역이면 불 피해 자체가 안 오므로
+    면역을 끄고 `attackEntityFrom`에서 불 피해를 막으며 `inFire` 때 변환, `// 원작과 다름`). `CommonProxy.onPlayerInteract`(`LEFT_CLICK_BLOCK`, Flux를 최대 스택으로 나눠 떨어뜨림)와
+    `onEntityAdded`(청크 로드 중 CME를 피하려고 `scheduleServerTask`로 다음 틱에 교체, `// 원작과 다름`)
 - **Q 청크 로딩·일괄 편집**: 원작 `FluxChunkManager`, `ForgeChunkManager` 콜백 등록(`CommonProxy`), `FluxNetworkData`의 청크 목록 저장,
   `PacketTileHandler`의 `forceChunk/releaseChunk`, `TileFluxCore.invalidate`의 해제, `PacketBatchEditing` `editions[5]`, 구성기 홈의 청크 로딩 스위치.
   - `ChunkPos` 대신 `ChunkCoordIntPair`. `FluxConfig.enableChunkLoading`이 꺼져 있으면 모두 거부
@@ -111,8 +114,9 @@ GUI는 **원작 GUI를 그대로 옮긴다** (ModularUI 쓰지 않음).
    값을 바꿀 때는 반드시 setter(`setMaxInputTier`, `setOutputTier`, `setOutputAmperage`)를 쓴다 (보정과 동기화 포함)
 7. **GT 케이블 갱신**: `TileFluxConnector.notifyGTCables()`가 인접 GT 케이블 좌표로 `GregTechAPI.causeCableUpdate`를 호출한다.
    첫 틱, 25틱 뒤, `invalidate` 때. GT 케이블 연결을 강제로 끊었다 잇는 방식은 쓰지 않는다
-8. **등록 이름 (월드 저장에 기록됨, 변경 금지)**: 블록 `fluxplug`, `fluxpoint`, `fluxstorage`, `herculeanfluxstorage`, `gargantuanfluxstorage`, `fluxcontroller` /
-   타일 `fluxnetworks:FluxPlug`, `fluxnetworks:FluxPoint`, `fluxnetworks:FluxStorage`, `fluxnetworks:HerculeanFluxStorage`, `fluxnetworks:GargantuanFluxStorage`, `fluxnetworks:FluxController`
+8. **등록 이름 (월드 저장에 기록됨, 변경 금지)**: 블록 `fluxblock`, `fluxplug`, `fluxpoint`, `fluxstorage`, `herculeanfluxstorage`, `gargantuanfluxstorage`, `fluxcontroller` /
+   타일 `fluxnetworks:FluxPlug`, `fluxnetworks:FluxPoint`, `fluxnetworks:FluxStorage`, `fluxnetworks:HerculeanFluxStorage`, `fluxnetworks:GargantuanFluxStorage`, `fluxnetworks:FluxController` /
+   아이템 `flux`, `fluxcore`, `fluxconfigurator`, `adminconfigurator` / 엔티티 `"Flux"`(ID 0)
 9. **아이템 NBT**: 장치 데이터는 `FluxUtils.FLUX_DATA` 하위 태그, 키는 `TileFluxCore.NBT_CUSTOM_NAME` 등 상수. 설정 복사는 `FluxConfigurationType.copyAll/pasteAll`
 10. **SuperAdmin**: `IExtendedEntityProperties`(`SuperAdminData`). 원작처럼 죽으면 해제
 
