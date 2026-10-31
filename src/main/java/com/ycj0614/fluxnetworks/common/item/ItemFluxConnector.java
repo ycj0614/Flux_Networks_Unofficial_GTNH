@@ -14,6 +14,7 @@ import net.minecraftforge.common.util.Constants;
 
 import com.ycj0614.fluxnetworks.api.translate.FluxTranslate;
 import com.ycj0614.fluxnetworks.client.FluxColorHandler;
+import com.ycj0614.fluxnetworks.common.block.BlockFluxController;
 import com.ycj0614.fluxnetworks.common.block.BlockFluxStorage;
 import com.ycj0614.fluxnetworks.common.connection.transfer.FluxStorageHandler;
 import com.ycj0614.fluxnetworks.common.core.FluxUtils;
@@ -27,7 +28,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 /**
- * 커넥터(플러그·포인트·스토리지) 전용 ItemBlock. 부순 장치의 데이터({@link FluxUtils#FLUX_DATA}, TILE_DROP)로 이름과 툴팁을 보여준다.
+ * 커넥터(플러그·포인트·스토리지·컨트롤러) 전용 ItemBlock. 부순 장치의 데이터({@link FluxUtils#FLUX_DATA}, TILE_DROP)로 이름과 툴팁을 보여준다.
  * GameRegistry.registerBlock(block, ItemFluxConnector.class, name)으로 등록하며, 생성자는 (Block) 하나여야 한다.
  */
 public class ItemFluxConnector extends ItemBlock {
@@ -56,6 +57,8 @@ public class ItemFluxConnector extends ItemBlock {
         BlockFluxStorage storage = block instanceof BlockFluxStorage ? (BlockFluxStorage) block : null;
         if (storage != null) {
             tooltip.add(FluxTranslate.FLUX_STORAGE_TOOLTIP.t());
+        } else if (block instanceof BlockFluxController) {
+            tooltip.add(FluxTranslate.FLUX_CONTROLLER_TOOLTIP.t());
         }
         NBTTagCompound tag = getFluxData(stack);
         if (tag != null) {

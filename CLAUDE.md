@@ -37,7 +37,7 @@ git -C ../reference/GT5-Unofficial sparse-checkout set src/main/java/gregtech/ap
 | --- | --- | --- |
 | 1단계 EU 전송 MVP | A API / B 진입점·설정·프록시 / C 네트워크 코어 / D 저장 데이터·FluxUtils / E 전송 핸들러 / F 타일 / G 블록·등록·디버그 명령 | 완료, 게임 테스트 통과 |
 | 2단계 GUI·패킷 | H 패킷 기반·SuperAdmin·동기화 패킷 / I 명령 패킷 / J 구성기·ItemBlock·색상 캐시 / K GUI 틀 / L GUI 화면 / M `/fluxdebug` 삭제·TODO 정리 | **완료 (마일스톤)**, 데디케이티드 서버 멀티플레이 테스트 통과 |
-| 3단계 | N 스토리지 / O 컨트롤러 / P 플럭스 아이템·블록 / Q 청크 로딩·일괄 편집 / R 원작 모양 렌더링·네트워크 색상 | N 완료·게임 테스트 통과, 다음은 **O** |
+| 3단계 | N 스토리지 / O 컨트롤러 / P 플럭스 아이템·블록 / Q 청크 로딩·일괄 편집 / R 원작 모양 렌더링·네트워크 색상 | N 완료·게임 테스트 통과, O 완료(게임 테스트 대기), 다음은 **P** |
 | 4단계 | 컨트롤러 무선 충전 (GT 전기 아이템) | 대기 |
 | 5단계 | GT 레시피, NEI, WAILA, 배포 | 대기 |
 
@@ -57,10 +57,13 @@ GUI는 **원작 GUI를 그대로 옮긴다** (ModularUI 쓰지 않음).
   - 결과: `FluxStorageHandler`(NBT 키 상수 `NBT_ENERGY`), `TileFluxStorage`(+`Herculean`/`Gargantuan` 내부 클래스), `BlockFluxStorage`(`getMaxStorage()`),
     텍스처 `fluxstorage1~3_on/off.png`(원작 `model/tierN`, `tierN_off` 복사). `IFluxStorage`가 `IFluxPlug`·`IFluxPoint`를 상속하므로
     EU getter는 쓰이지 않는 고정값(MAX 티어, 1A)을 돌려준다 (`// 원작과 다름`). 아이템 툴팁은 "저장량 / 용량"
-- **O 컨트롤러**: 원작 `TileFluxController`, `BlockFluxController`, `FluxControllerHandler`.
+- **O 컨트롤러 (완료)**: 원작 `TileFluxController`, `BlockFluxController`, `FluxControllerHandler`.
   - 등록 이름: 블록 `fluxcontroller` / 타일 `fluxnetworks:FluxController`
   - 네트워크당 컨트롤러 1개 (원작 `FluxUtils`·`PacketTileHandler`의 `HAS_CONTROLLER` 피드백). 같은 검사를 구성기 붙여넣기에도 적용
   - 핸들러는 요청량 0인 껍데기만 둔다. 플레이어 충전(`chargeAllItems`, 바우블)은 `// TODO 4단계:`로 남긴다. GUI 무선 탭은 계속 숨긴다
+  - 결과: `FluxControllerHandler`(4단계 TODO는 클래스 주석), `TileFluxController`(`TileFluxCore` 직접 상속, EU getter는 고정값 `// 원작과 다름`),
+    `BlockFluxController`, 텍스처 `fluxcontroller_on/off.png`(원작 `model/` 복사). 구성기 붙여넣기 검사는 `FluxUtils.hasOtherController`
+    (다른 컨트롤러가 있으면 네트워크만 건너뛰고 나머지 설정은 붙여넣음, 채팅으로 `hascontroller` 안내)
 - **P 플럭스 아이템·블록**: 원작 `ItemFlux`(Flux), `ItemCore`(FluxCore), `BlockCore`(FluxBlock, 바위 재질), `EntityFireItem`,
   `CommonProxy`의 흑요석 좌클릭 제작(`enableFluxRecipe`)과 `onEntyAdded`(`enableOldRecipe`).
   - 등록 이름: 아이템 `flux`, `fluxcore` / 블록 `fluxblock`, 엔티티 `"Flux"`(ID 0)
@@ -103,13 +106,13 @@ GUI는 **원작 GUI를 그대로 옮긴다** (ModularUI 쓰지 않음).
 3. **플러그**: `FluxPlugHandler.injectEnergyUnits`가 암페어 단위로 받는다. 최대 입력 티어 초과 전압은 0 반환(폭발 없음). `side`가 `UNKNOWN`이어도 받는다
 4. **전송 사이클**: `FluxNetworkServer.onEndServerTick`과 우선순위 정렬은 원작 알고리즘 그대로. 수정 금지
 5. **타일 구조**: `TileFluxCore` → `TileFluxConnector`(GT `IEnergyConnected` 구현, 색 -1) → `TileFluxPlug` / `TileFluxPoint`.
-   `TileFluxStorage`는 `TileFluxCore`를 바로 상속한다 (GT와 연결하지 않음)
+   `TileFluxStorage`, `TileFluxController`는 `TileFluxCore`를 바로 상속한다 (GT와 연결하지 않음)
 6. **EU 설정**: 플러그 `maxInputTier`(NBT `"mt"`), 포인트 `outputTier`(`"ot"`), `outputAmperage`(`"oa"`). 티어 0(ULV)~14(MAX).
    값을 바꿀 때는 반드시 setter(`setMaxInputTier`, `setOutputTier`, `setOutputAmperage`)를 쓴다 (보정과 동기화 포함)
 7. **GT 케이블 갱신**: `TileFluxConnector.notifyGTCables()`가 인접 GT 케이블 좌표로 `GregTechAPI.causeCableUpdate`를 호출한다.
    첫 틱, 25틱 뒤, `invalidate` 때. GT 케이블 연결을 강제로 끊었다 잇는 방식은 쓰지 않는다
-8. **등록 이름 (월드 저장에 기록됨, 변경 금지)**: 블록 `fluxplug`, `fluxpoint`, `fluxstorage`, `herculeanfluxstorage`, `gargantuanfluxstorage` /
-   타일 `fluxnetworks:FluxPlug`, `fluxnetworks:FluxPoint`, `fluxnetworks:FluxStorage`, `fluxnetworks:HerculeanFluxStorage`, `fluxnetworks:GargantuanFluxStorage`
+8. **등록 이름 (월드 저장에 기록됨, 변경 금지)**: 블록 `fluxplug`, `fluxpoint`, `fluxstorage`, `herculeanfluxstorage`, `gargantuanfluxstorage`, `fluxcontroller` /
+   타일 `fluxnetworks:FluxPlug`, `fluxnetworks:FluxPoint`, `fluxnetworks:FluxStorage`, `fluxnetworks:HerculeanFluxStorage`, `fluxnetworks:GargantuanFluxStorage`, `fluxnetworks:FluxController`
 9. **아이템 NBT**: 장치 데이터는 `FluxUtils.FLUX_DATA` 하위 태그, 키는 `TileFluxCore.NBT_CUSTOM_NAME` 등 상수. 설정 복사는 `FluxConfigurationType.copyAll/pasteAll`
 10. **SuperAdmin**: `IExtendedEntityProperties`(`SuperAdminData`). 원작처럼 죽으면 해제
 

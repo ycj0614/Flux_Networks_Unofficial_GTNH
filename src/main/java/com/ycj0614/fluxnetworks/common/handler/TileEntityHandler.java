@@ -5,6 +5,7 @@ import net.minecraft.tileentity.TileEntity;
 
 import com.ycj0614.fluxnetworks.FluxConfig;
 import com.ycj0614.fluxnetworks.api.tiles.IFluxConnector;
+import com.ycj0614.fluxnetworks.common.tileentity.TileFluxController;
 import com.ycj0614.fluxnetworks.common.tileentity.TileFluxPlug;
 import com.ycj0614.fluxnetworks.common.tileentity.TileFluxPoint;
 import com.ycj0614.fluxnetworks.common.tileentity.TileFluxStorage;
@@ -27,7 +28,7 @@ public class TileEntityHandler {
         GameRegistry.registerTileEntity(TileFluxStorage.class, "fluxnetworks:FluxStorage");
         GameRegistry.registerTileEntity(TileFluxStorage.Herculean.class, "fluxnetworks:HerculeanFluxStorage");
         GameRegistry.registerTileEntity(TileFluxStorage.Gargantuan.class, "fluxnetworks:GargantuanFluxStorage");
-        // TODO 3단계: 원작의 FluxController 타일 등록 (배치 O)
+        GameRegistry.registerTileEntity(TileFluxController.class, "fluxnetworks:FluxController");
     }
 
     /**

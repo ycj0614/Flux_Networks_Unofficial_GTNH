@@ -83,6 +83,16 @@ public class ItemConfigurator extends Item {
         } else {
             NBTTagCompound configs = getConfigs(stack);
             if (configs != null && !configs.hasNoTags()) {
+                String networkKey = FluxConfigurationType.NETWORK.getNBTName();
+                if (configs.hasKey(networkKey) && FluxUtils.hasOtherController(
+                    FluxNetworkCache.instance.getNetwork(configs.getInteger(networkKey)),
+                    fluxCore)) {
+                    // 네트워크는 붙여넣지 않고 나머지 설정만 붙여넣는다 (FluxConfigurationType.pasteNetwork)
+                    ChatComponentTranslation text = new ChatComponentTranslation(FluxTranslate.HAS_CONTROLLER.key);
+                    text.getChatStyle()
+                        .setColor(EnumChatFormatting.RED);
+                    player.addChatMessage(text);
+                }
                 fluxCore.pasteConfiguration(configs);
                 player.addChatMessage(new ChatComponentTranslation(CONFIG_PASTED_KEY));
             }

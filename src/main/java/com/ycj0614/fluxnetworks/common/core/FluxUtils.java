@@ -98,7 +98,7 @@ public class FluxUtils {
         return false;
     }
 
-    private static ItemStack plugStack, pointStack, storageStack;
+    private static ItemStack plugStack, pointStack, storageStack, controllerStack;
 
     /** 연결 종류별 GUI 표시용 아이템 (원작 FluxGuiStack). 그리기만 하므로 같은 인스턴스를 돌려준다 */
     @Nullable
@@ -119,8 +119,12 @@ public class FluxUtils {
                     storageStack = new ItemStack(RegistryBlocks.FLUX_STORAGE_1);
                 }
                 return storageStack;
+            case CONTROLLER:
+                if (controllerStack == null) {
+                    controllerStack = new ItemStack(RegistryBlocks.FLUX_CONTROLLER);
+                }
+                return controllerStack;
             default:
-                // TODO 3단계: 컨트롤러 아이콘 (원작: FluxGuiStack.FLUX_CONTROLLER, 배치 O)
                 return null;
         }
     }
@@ -132,6 +136,23 @@ public class FluxUtils {
             return null;
         }
         return new ItemStack(item, 1, world.getBlockMetadata(x, y, z));
+    }
+
+    /**
+     * 네트워크당 컨트롤러 1개 규칙. connector가 컨트롤러이고 network에 다른 컨트롤러가 이미 있으면 true.
+     * 구성기 붙여넣기가 쓴다 (addConnection·PacketTileHandler와 같은 검사).
+     */
+    public static boolean hasOtherController(IFluxNetwork network, IFluxConnector connector) {
+        if (network.isInvalid() || !connector.getConnectionType()
+            .isController()) {
+            return false;
+        }
+        for (IFluxConnector controller : network.<IFluxConnector>getConnections(FluxLogicType.CONTROLLER)) {
+            if (controller != connector) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static boolean addConnection(IFluxConnector fluxConnector) {

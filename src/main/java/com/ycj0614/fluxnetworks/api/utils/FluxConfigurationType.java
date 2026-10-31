@@ -4,6 +4,7 @@ import net.minecraft.nbt.NBTTagCompound;
 
 import com.ycj0614.fluxnetworks.api.network.IFluxNetwork;
 import com.ycj0614.fluxnetworks.common.connection.FluxNetworkCache;
+import com.ycj0614.fluxnetworks.common.core.FluxUtils;
 import com.ycj0614.fluxnetworks.common.tileentity.TileFluxCore;
 import com.ycj0614.fluxnetworks.common.tileentity.TileFluxPlug;
 import com.ycj0614.fluxnetworks.common.tileentity.TileFluxPoint;
@@ -120,6 +121,10 @@ public class FluxConfigurationType {
         int storedID = nbt.getInteger(key);
         if (storedID != -1) {
             IFluxNetwork newNetwork = FluxNetworkCache.instance.getNetwork(storedID);
+            // 네트워크당 컨트롤러 1개. 다른 컨트롤러가 있으면 네트워크만 바꾸지 않는다 (ItemConfigurator가 안내)
+            if (FluxUtils.hasOtherController(newNetwork, tile)) {
+                return;
+            }
             tile.getNetwork()
                 .queueConnectionRemoval(tile, false);
             newNetwork.queueConnectionAddition(tile);
