@@ -38,8 +38,8 @@ git -C ../reference/GT5-Unofficial sparse-checkout set src/main/java/gregtech/ap
 | 1단계 EU 전송 MVP | A API / B 진입점·설정·프록시 / C 네트워크 코어 / D 저장 데이터·FluxUtils / E 전송 핸들러 / F 타일 / G 블록·등록·디버그 명령 | 완료, 게임 테스트 통과 |
 | 2단계 GUI·패킷 | H 패킷 기반·SuperAdmin·동기화 패킷 / I 명령 패킷 / J 구성기·ItemBlock·색상 캐시 / K GUI 틀 / L GUI 화면 / M `/fluxdebug` 삭제·TODO 정리 | **완료 (마일스톤)**, 데디케이티드 서버 멀티플레이 테스트 통과 |
 | 3단계 | N 스토리지 / O 컨트롤러 / P 플럭스 아이템·블록 / Q 청크 로딩·일괄 편집 / R 원작 모양 렌더링·네트워크 색상 | 완료, 게임 테스트 통과 |
-| 4단계 컨트롤러 무선 충전 | S 아이템 충전 헬퍼 / T 충전 핸들러 / U 무선 GUI 탭 / V 바우블 | S·T·U 완료, **다음은 V** |
-| 5단계 | GT 레시피, NEI, WAILA, 배포 | 대기 |
+| 4단계 컨트롤러 무선 충전 | S 아이템 충전 헬퍼 / T 충전 핸들러 / U 무선 GUI 탭 / V 바우블 | 완료, 게임 테스트 통과 |
+| 5단계 마무리·연동 | W 레시피 / X NEI / Y WAILA / Z 배포 (가칭) | **다음은 5단계** (배치 범위 확정부터) |
 
 GUI는 **원작 GUI를 그대로 옮긴다** (ModularUI 쓰지 않음).
 
@@ -95,7 +95,7 @@ GUI는 **원작 GUI를 그대로 옮긴다** (ModularUI 쓰지 않음).
 ### 4단계 배치
 
 컨트롤러가 네트워크 에너지로 멤버 플레이어의 전기 아이템을 충전한다. 원작 `FluxControllerHandler`, `GuiTabWireless`, `WirelessType`.
-코드에 남은 `// TODO 배치 V:`(`FluxControllerHandler` 클래스 주석, `GuiTabWireless` 바우블 버튼, `WirelessType.BAUBLES`)를 배치마다 처리한다.
+코드에 남았던 `// TODO 배치 V:`(`FluxControllerHandler` 클래스 주석, `GuiTabWireless` 바우블 버튼, `WirelessType.BAUBLES`)는 V에서 모두 처리했다.
 이미 있는 것: `WirelessType`, `NETWORK_WIRELESS` 설정과 저장(`wirelessMode`), `PacketGeneralType.CHANGE_WIRELESS`(편집 권한 확인), 번역 키 `tab.wireless`·`flux.wireless`·`slot.*`, `InventoryButton`.
 
 **IC2 아이템 API 예외 (S에서 결정, 승인됨)**: GTNH의 전기 아이템(GT 배터리·도구·전기 갑옷, IC2·GT++ 아이템)은 모두
@@ -129,6 +129,31 @@ EU이므로 "IC2 에너지 금지"의 예외로 **아이템 충전에 한해** `
     `InventoryButton`은 생성자로 탭의 `settings` 배열을 받고, 누를 수 없는 칸은 회색(0x606060)으로 그린다
 - **V 바우블**: GTNH의 Baubles(Baubles-Expanded) API를 `compileOnly`로 추가하고(GTNH 2.9.0 매니페스트의 버전 사용), 모드가 있을 때만
   `BaublesApi.getBaubles(player)`(`IInventory`) 슬롯을 충전한다. 모드 확인은 `Loader.isModLoaded("Baubles")`로 하고 바우블 클래스는 별도 클래스에서만 import한다(없을 때 `NoClassDefFoundError` 방지)
+  - 결과 (완료): `compileOnly("com.github.GTNewHorizons:Baubles-Expanded:2.2.27-GTNH:dev")`(GTNH 2.9.0 매니페스트. GT5U를 통해 런타임에도 딸려 옴).
+    Baubles-Expanded의 modid도 `"Baubles"`(`"Baubles|Expanded"`는 보조 모드). `CommonProxy.baublesLoaded`(preInit, 원작과 같은 자리)를 서버 핸들러와 GUI가 같이 쓴다.
+    `common/integration/BaublesIntegration.getBaubles(player)`만 `baubles.*`를 import하고 `null`일 수 있다(API가 리플렉션 실패 시 null).
+    `FluxControllerHandler`는 갑옷 다음에 바우블 슬롯을 충전하고, 스택 NBT만 고친다(`setInventorySlotContents`는 장착 해제·장착 이벤트를 불러서 안 씀).
+    그래서 바우블 창을 열기 전에는 클라이언트 충전 표시가 늦을 수 있다. GUI 바우블 칸은 `clickable = baublesLoaded`(`// 원작과 다름`)
+
+### 5단계 배치 (가칭, 시작할 때 범위를 확정한다)
+
+5단계는 아직 배치 범위가 정해지지 않았다. **첫 배치를 시작하기 전에 아래 초안을 바탕으로 배치 나누기·순서·파일 목록을 보여주고 승인을 받는다.**
+확정되면 이 절의 "가칭"을 지우고 각 배치에 결과를 적는다. 코드에 남은 `// TODO 5단계:`를 검색해 해당 배치에서 처리한다.
+
+- 다른 모드 연동은 모두 선택 의존성이다. V의 바우블과 같은 방식: GTNH 2.9.0 매니페스트
+  (`https://raw.githubusercontent.com/GTNewHorizons/DreamAssemblerXXL/master/releases/manifests/2.9.0.json`)의 버전으로 `compileOnly`,
+  `Loader.isModLoaded`로 확인, 그 모드의 클래스는 `common/integration/`(클라이언트 전용이면 `client/integration/`)의 별도 클래스에서만 import.
+  GT5U를 통해 이미 딸려 오는 모드인지 먼저 `./gradlew dependencies --configuration compileClasspath`로 본다
+- **W 레시피**: 원작 `common/registry/RegistryRecipes`를 참고해 장치·플럭스 아이템 레시피를 정한다. P에서 남긴 "일반 제작대 레시피와 GT 레시피".
+  GT 기계 레시피(GT5U `GTValues.RA` 레시피 빌더)로 할지, 제작대 레시피로 할지, 둘 다인지는 배치 시작 때 사용자와 정한다. 원작 `enableFluxRecipe`·`enableOldRecipe`(P에서 구현)는 그대로 둔다
+- **X NEI**: 원작 JEI 연동(`client/jei/` `FluxCraftingCategory`, `FluxRecipeWrapper`, 텍스처 `gui_creating_flux_recipe.png`)을 NEI 핸들러로 옮긴다
+  (흑요석 위 레드스톤 → 플럭스 월드 안 제작 표시). W에서 만든 레시피가 NEI에 보이는지도 확인
+- **Y WAILA**: 원작 `common/integration/TOPIntegration`(The One Probe)을 WAILA로 옮긴다 (네트워크 이름·연결 상태·전송량·우선순위·한도, 스토리지 에너지 등).
+  `ConnectionTransfer`의 `// TODO 5단계:`(인접 장치 표시용 ItemStack)를 함께 검토한다
+- **Z 배포**: 버전·`mcmod.info`·README·LICENSE(원작 MIT 고지 유지), 배포 jar를 바우블 없는 환경에서도 실행해 확인 (V의 회색 바우블 칸 확인 포함)
+- 범위를 정할 때 같이 결정할 남은 TODO: `GuiTabMembers`의 `// TODO 5단계:`(이름으로 멤버 추가, 원작에서도 주석 처리됨. 넣을지 버릴지),
+  `SuperAdminData`의 `// TODO 확인:`(ops.json 레벨 경로)
+- 원작의 `MekanismIntegration`, `oc`(OpenComputers), `energy`(RF·FE 등)는 옮기지 않는다 (EU 전용 원칙)
 
 ## 작업 방식
 

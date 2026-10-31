@@ -10,15 +10,18 @@ import javax.annotation.Nonnull;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.common.util.ForgeDirection;
 
+import com.ycj0614.fluxnetworks.FluxNetworks;
 import com.ycj0614.fluxnetworks.api.network.IFluxNetwork;
 import com.ycj0614.fluxnetworks.api.network.NetworkMember;
 import com.ycj0614.fluxnetworks.api.network.NetworkSettings;
 import com.ycj0614.fluxnetworks.api.network.WirelessType;
 import com.ycj0614.fluxnetworks.common.core.ItemEnergy;
+import com.ycj0614.fluxnetworks.common.integration.BaublesIntegration;
 import com.ycj0614.fluxnetworks.common.tileentity.TileFluxController;
 
 /**
@@ -28,9 +31,8 @@ import com.ycj0614.fluxnetworks.common.tileentity.TileFluxController;
  * 요청량(demand)을 시뮬레이션으로 정하고, (timer & 3) == 0이면 버퍼에서 실제로 충전한다 (4틱마다).
  * 그래서 ItemEnergy는 한 번에 아이템 전송 한도 × 4까지 넣는다.
  * <p>
- * 슬롯 순서: 오른손 → 핫바(든 아이템 제외) → 갑옷.
+ * 슬롯 순서: 오른손 → 핫바(든 아이템 제외) → 갑옷 → 바우블(바우블 모드가 있을 때만).
  * 원작과 다름: 1.7.10에는 왼손(오프핸드)이 없으므로 LEFT_HAND는 무시한다.
- * TODO 배치 V: 원작 BAUBLES — 바우블 모드가 있으면 BaublesApi.getBaubles(player) 슬롯도 충전한다 (갑옷 다음).
  */
 public class FluxControllerHandler extends BasicPointHandler<TileFluxController> {
 
@@ -153,6 +155,18 @@ public class FluxControllerHandler extends BasicPointHandler<TileFluxController>
                 leftover = chargeStack(stack, leftover, simulate);
                 if (leftover <= 0) {
                     return 0;
+                }
+            }
+        }
+        if (WirelessType.BAUBLES.isActivated(wireless) && FluxNetworks.proxy.baublesLoaded) {
+            IInventory baubles = BaublesIntegration.getBaubles(player);
+            if (baubles != null) {
+                // 슬롯 내용을 바꾸지 않고 NBT만 고친다 (setInventorySlotContents는 장착 해제·장착 이벤트를 부르므로 쓰지 않는다)
+                for (int i = 0; i < baubles.getSizeInventory(); i++) {
+                    leftover = chargeStack(baubles.getStackInSlot(i), leftover, simulate);
+                    if (leftover <= 0) {
+                        return 0;
+                    }
                 }
             }
         }

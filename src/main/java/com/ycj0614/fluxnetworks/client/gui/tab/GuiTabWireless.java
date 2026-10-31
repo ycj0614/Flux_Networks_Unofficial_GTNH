@@ -83,8 +83,8 @@ public class GuiTabWireless extends GuiTabCore {
             inventoryButtonList
                 .add(new InventoryButton(WirelessType.ARMOR_SLOT, this, settings, 24, 32, 0, 80, 52, 16));
             InventoryButton baubles = new InventoryButton(WirelessType.BAUBLES, this, settings, 100, 32, 0, 80, 52, 16);
-            // TODO 배치 V: 바우블 모드(Loader.isModLoaded("Baubles"))가 있을 때만 누를 수 있게 한다
-            baubles.clickable = false;
+            // 원작과 다름: 바우블 모드가 없으면 칸을 회색으로 두고 누를 수 없게 한다 (원작은 항상 누를 수 있음)
+            baubles.clickable = FluxNetworks.proxy.baublesLoaded;
             inventoryButtonList.add(baubles);
             inventoryButtonList.add(new InventoryButton(WirelessType.INVENTORY, this, settings, 32, 56, 0, 0, 112, 40));
             inventoryButtonList

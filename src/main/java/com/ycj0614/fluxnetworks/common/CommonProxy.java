@@ -46,6 +46,7 @@ import com.ycj0614.fluxnetworks.common.registry.RegistryBlocks;
 import com.ycj0614.fluxnetworks.common.registry.RegistryItems;
 
 import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
@@ -66,6 +67,9 @@ public class CommonProxy {
     public boolean detailed_network_view;
     public IFluxNetwork admin_viewing_network = FluxNetworkInvalid.instance;
 
+    /** 바우블 모드가 있는지. true일 때만 BaublesIntegration을 부른다 (서버·클라이언트 공용) */
+    public boolean baublesLoaded;
+
     /** 1.7.10에는 addScheduledTask가 없으므로, 패킷 처리 등 메인 스레드 작업을 여기에 넣고 ServerTickEvent START에서 실행한다 */
     private final Queue<Runnable> serverTasks = new ConcurrentLinkedQueue<>();
 
@@ -77,6 +81,8 @@ public class CommonProxy {
         // FluxConnectionEvent, EntityJoinWorldEvent 등 net.minecraftforge.event.* → Forge 버스
         MinecraftForge.EVENT_BUS.register(this);
         PacketHandler.registerMessages();
+        // Baubles-Expanded의 modid도 "Baubles"다 ("Baubles|Expanded"는 보조 모드)
+        baublesLoaded = Loader.isModLoaded("Baubles");
         FluxConfig.init(event.getModConfigurationDirectory());
         RegistryBlocks.register();
         RegistryItems.register();
